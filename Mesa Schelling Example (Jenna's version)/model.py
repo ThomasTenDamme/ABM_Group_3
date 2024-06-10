@@ -3,6 +3,8 @@ import numpy as np
 import mesa
 import random
 
+NO_NEIGHBORS_THETA = 0.5
+
 class SchellingAgent(mesa.Agent):
     """
     Schelling segregation agent
@@ -22,19 +24,19 @@ class SchellingAgent(mesa.Agent):
         self.budget = budget
 
     def step(self):
-        similar = 0
-        for neighbor in self.model.grid.iter_neighbors(
-            self.pos, moore=True, radius=self.model.radius
-        ):
-            if isinstance(neighbor, SchellingAgent) and neighbor.type == self.type:
-                similar += 1
+        """
+        Step for agent to move
+        """
 
 
         available_cells = self.model.find_available_cells(self.budget)
-        if len(available_cells) > 0:
-            destination = random.choice(available_cells)
-            self.model.grid.move_agent(self, destination)
-
+        if len(available_cells) < 0:
+            return
+        
+        # destination = random.choice(available_cells)
+        # self.model.grid.move_agent(self, destination)
+        
+        # TODO - iterate over available cells to find the highest utility, move if higher than current
 
 
 class Schelling(mesa.Model):
@@ -44,14 +46,15 @@ class Schelling(mesa.Model):
 
     def __init__(
         self,
+        property_value_func,
+        utility_func,
         height=20,
         width=20,
-        homophily=3,
+        homophily=0.5,
         radius=1,
         density=0.8,
         minority_pc=0.2,
-        seed=None,
-        property_value=100
+        seed=None
     ):
         """
         Create a new Schelling model.
@@ -73,14 +76,27 @@ class Schelling(mesa.Model):
         self.minority_pc = minority_pc
         self.homophily = homophily
         self.radius = radius
-
-        self.property_values = np.full((width, height), property_value)
-        self.desirability = np.full((width, height), 1)
-
+        
         self.schedule = mesa.time.RandomActivation(self)
         self.grid = mesa.space.SingleGrid(width, height, torus=True)
 
-        self.happy = 0
+        # Property Value Layer
+        self.property_value_layer = property_value_func(name="property_values", width=width, height=height, torus=True)
+        self.grid.add_property_layer(self.property_value_layer)
+
+        # Desirability Layer
+        self.desirability_layer = mesa.space.PropertyLayer("desirability", width, height, torus=True)
+        for _, pos in self.grid.coord_iter():
+            self.desirability_layer[pos] = 1
+        self.grid.add_property_layer(self.desirability_layer)
+        
+        # Interested Agents Counter Layer
+        self.interested_agents_layer = mesa.space.PropertyLayer("interested_agents", width, height, torus=True)
+        for _, pos in self.grid.coord_iter():
+            self.interested_agents_layer[pos] = 0
+        self.grid.add_property_layer(self.interested_agents_layer)
+        
+        # self.happy = 0
         self.datacollector = mesa.DataCollector(
             model_reporters={"happy": "happy"},  # Model-level count of happy agents
         )
@@ -96,6 +112,25 @@ class Schelling(mesa.Model):
 
         self.datacollector.collect(self)
 
+    def get_theta(self, loc: tuple, type):
+        similar = 0
+        num_neighbours = 0
+        
+        for neighbor in self.model.grid.iter_neighbors(
+            loc, moore=True, radius=self.model.radius
+        ):
+            
+            num_neighbours += 1
+            if neighbor.type == type:
+                similar += 1
+        
+        if num_neighbours == 0:
+            return NO_NEIGHBORS_THETA
+                
+        proportion_similar = similar / num_neighbours
+        
+        return proportion_similar
+
     def find_available_cells(self, budget, utility_agent):
         available_cells = []
         for _, pos in self.grid.coord_iter():
@@ -107,9 +142,18 @@ class Schelling(mesa.Model):
         """
         Run one step of the model.
         """
-        self.happy = 0  # Reset counter of happy agents
+        # TODO - reset every cell's counter in the interested_agents_layer
+        
+        for agent in self.schedule.agents:
+            # TODO - Calc current agent's utility at current location
+            utility = 0
+            
+            # TODO - iterate over cells and compare utility to current location, add to interested_agents_layer if better
+            
+        for cell in self.grid.coord_iter():
+            # TODO - update desirability layer by normalizing interested_agents_layer value
+            pass
+        
+        
         self.schedule.step()
         self.datacollector.collect(self)
-
-        if self.happy == self.schedule.get_agent_count():
-            self.running = False
