@@ -22,6 +22,7 @@ class SchellingAgent(mesa.Agent):
         super().__init__(unique_id, model)
         self.type = agent_type
         self.budget = budget
+        self.utility = 0.5
 
     def step(self):
         """
