@@ -99,7 +99,7 @@ class Schelling(mesa.Model):
         
         # self.happy = 0
         self.datacollector = mesa.DataCollector(
-            model_reporters={"happy": "happy"},  # Model-level count of happy agents
+            # model_reporters={"happy": "happy"},  # Model-level count of happy agents
         )
 
         # Set up agents
