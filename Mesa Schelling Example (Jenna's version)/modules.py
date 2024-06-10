@@ -14,3 +14,9 @@ def utility_func(model: mesa.Model, agent_loc: tuple, property_loc: tuple) -> fl
     # TODO
     
     return 0.0
+
+def price_func(model: mesa.Model, property_loc: tuple) -> float:
+    
+    # TODO
+    
+    return 0.0

@@ -48,6 +48,7 @@ class Schelling(mesa.Model):
         self,
         property_value_func,
         utility_func,
+        price_func,
         height=20,
         width=20,
         homophily=0.5,
