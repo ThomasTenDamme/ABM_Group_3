@@ -29,8 +29,8 @@ def schelling_draw(agent):
 
 canvas_element = mesa.visualization.CanvasGrid(
     portrayal_method=schelling_draw,
-    grid_width=20,
-    grid_height=20,
+    grid_width=10,
+    grid_height=10,
     canvas_width=500,
     canvas_height=500,
 )
@@ -40,8 +40,8 @@ model_params = {
     "property_value_func": property_value_func,
     "utility_func": utility_func,
     "price_func": price_func,
-    "height": 20,
-    "width": 20,
+    "height": 10,
+    "width": 10,
     "density": mesa.visualization.Slider(
         name="Agent density", value=0.8, min_value=0.1, max_value=1.0, step=0.1
     ),

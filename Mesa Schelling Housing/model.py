@@ -73,6 +73,8 @@ class Schelling(mesa.Model):
         """
 
         super().__init__(seed=seed)
+        self.utility_func = utility_func
+        self.price_func = price_func
         self.height = height
         self.width = width
         self.density = density
@@ -145,21 +147,22 @@ class Schelling(mesa.Model):
         """
         Run one step of the model.
         """
-        # TODO - reset every cell's counter in the interested_agents_layer
-        # for _, pos in self.grid.coord_iter():
+        # Set the count of agents who like to move somewhere to 0 for all cells
         self.interested_agents_layer.set_cells(0)
-        
+
         for agent in self.schedule.agents:
-            # TODO - Calc current agent's utility at current location
-            # agent.utility is its current utility
-            
-            # TODO - iterate over cells and compare utility to current location, add to interested_agents_layer if better
-            pass
+            # Iterate over cells and compare utility to current location, add to interested_agents_layer if better
+            for _, loc  in self.grid.coord_iter():
+                utility = self.utility_func(self, agent.pos, loc)
+                
+                if utility > agent.utility:
+                    self.interested_agents_layer.modify_cell(loc, lambda v: v + 1)
         
-        for cell in self.grid.coord_iter():
-            # TODO - update desirability layer by normalizing interested_agents_layer value
-            pass
-        
+        # Set desirability layer to the proportion of interested agents
+        num_agents = len(self.schedule.agents)
+        self.desirability_layer.set_cells(
+            self.interested_agents_layer.data / num_agents
+        )
         
         self.schedule.step()
         self.datacollector.collect(self)
