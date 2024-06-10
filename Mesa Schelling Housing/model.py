@@ -29,8 +29,7 @@ class SchellingAgent(mesa.Agent):
         Step for agent to move
         """
 
-
-        available_cells = self.model.find_available_cells(self.budget)
+        available_cells = self.model.find_available_cells(self)
         if len(available_cells) < 0:
             return
         
@@ -85,19 +84,19 @@ class Schelling(mesa.Model):
         self.grid = mesa.space.SingleGrid(width, height, torus=True)
 
         # Property Value Layer
-        self.property_value_layer = property_value_func(name="property_values", width=width, height=height, torus=True)
+        self.property_value_layer = property_value_func(name="property_values", width=width, height=height)
         self.grid.add_property_layer(self.property_value_layer)
 
         # Desirability Layer
-        self.desirability_layer = mesa.space.PropertyLayer("desirability", width, height, torus=True)
-        for _, pos in self.grid.coord_iter():
-            self.desirability_layer[pos] = 1
+        self.desirability_layer = mesa.space.PropertyLayer("desirability", width, height, 1)
+        # for _, pos in self.grid.coord_iter():
+        #     self.desirability_layer[pos] = 1
         self.grid.add_property_layer(self.desirability_layer)
         
         # Interested Agents Counter Layer
-        self.interested_agents_layer = mesa.space.PropertyLayer("interested_agents", width, height, torus=True)
-        for _, pos in self.grid.coord_iter():
-            self.interested_agents_layer[pos] = 0
+        self.interested_agents_layer = mesa.space.PropertyLayer("interested_agents", width, height, 0)
+        # for _, pos in self.grid.coord_iter():
+        #     self.interested_agents_layer[pos] = 0
         self.grid.add_property_layer(self.interested_agents_layer)
         
         # self.happy = 0
@@ -135,10 +134,10 @@ class Schelling(mesa.Model):
         
         return proportion_similar
 
-    def find_available_cells(self, budget, utility_agent):
+    def find_available_cells(self, agent):
         available_cells = []
         for _, pos in self.grid.coord_iter():
-            if self.grid.is_cell_empty(pos) and self.property_values[pos] < budget and self.utility_house[pos] > utility_agent:
+            if self.grid.is_cell_empty(pos):
                 available_cells.append(pos)        
         return available_cells
 
@@ -147,13 +146,16 @@ class Schelling(mesa.Model):
         Run one step of the model.
         """
         # TODO - reset every cell's counter in the interested_agents_layer
+        # for _, pos in self.grid.coord_iter():
+        self.interested_agents_layer.set_cells(0)
         
         for agent in self.schedule.agents:
             # TODO - Calc current agent's utility at current location
-            utility = 0
+            # agent.utility is its current utility
             
             # TODO - iterate over cells and compare utility to current location, add to interested_agents_layer if better
-            
+            pass
+        
         for cell in self.grid.coord_iter():
             # TODO - update desirability layer by normalizing interested_agents_layer value
             pass

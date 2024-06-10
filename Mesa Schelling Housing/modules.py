@@ -2,8 +2,8 @@ import mesa
 import mesa.agent
 
 
-def property_value_func(name, width, height, torus=True) -> mesa.space.PropertyLayer:
-    layer = mesa.space.PropertyLayer(name, width, height, torus)
+def property_value_func(name, width, height) -> mesa.space.PropertyLayer:
+    layer = mesa.space.PropertyLayer(name, width, height, 0)
     
     # TODO
     

@@ -1,12 +1,13 @@
 import mesa
 from model import Schelling
+from modules import property_value_func, utility_func, price_func
 
 
 def get_happy_agents(model):
     """
     Display a text count of how many happy agents there are.
     """
-    return f"Happy agents: {model.happy}"
+    return f"Happy agents: {1}"
 
 
 def schelling_draw(agent):
@@ -36,6 +37,9 @@ canvas_element = mesa.visualization.CanvasGrid(
 happy_chart = mesa.visualization.ChartModule([{"Label": "happy", "Color": "Black"}])
 
 model_params = {
+    "property_value_func": property_value_func,
+    "utility_func": utility_func,
+    "price_func": price_func,
     "height": 20,
     "width": 20,
     "density": mesa.visualization.Slider(
