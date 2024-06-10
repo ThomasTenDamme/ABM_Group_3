@@ -38,6 +38,8 @@ class SchellingAgent(mesa.Agent):
         # self.model.grid.move_agent(self, destination)
         
         # TODO - iterate over available cells to find the highest utility, move if higher than current
+        
+        # TODO - update utility value for current location (only if moved)
 
 
 class Schelling(mesa.Model):
