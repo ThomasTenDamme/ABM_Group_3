@@ -27,18 +27,31 @@ class SchellingAgent(mesa.Agent):
     def step(self):
         """
         Step for agent to move
+        In a step an agent will:
+            1. Find available properties to move to
+            2. Calculate their utility for each property
+            3. If the property with the highest utility has a higher utility than the current property, move there
+            4. Update the utility of the agent in their new location
         """
-
+        # find the available properties to move to
         available_cells = self.model.find_available_cells(self)
         if len(available_cells) < 0:
             return
         
-        # destination = random.choice(available_cells)
-        # self.model.grid.move_agent(self, destination)
+        # list all utilities of available properties
+        move_util = []
+        for cell in available_cells:
+            # store as (cell, utility) tuple
+            move_util.append((cell, self.model.utility_func(self, self.pos, cell)))
         
-        # TODO - iterate over available cells to find the highest utility, move if higher than current
-        
-        # TODO - update utility value for current location (only if moved)
+        # sort by utility
+        move_util.sort(key=lambda x: x[1], reverse=True)
+
+        # move if utility is higher than current
+        if move_util[0][1] > self.utility:
+            self.model.grid.move_agent(self, move_util[0][0])
+            # update utility
+            self.utility = move_util[0][1]
 
 
 class Schelling(mesa.Model):
