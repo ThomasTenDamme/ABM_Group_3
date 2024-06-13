@@ -70,6 +70,7 @@ class Schelling(mesa.Model):
         radius=1,
         density=0.8,
         minority_pc=0.2,
+        alpha=0.5,
         seed=None
     ):
         """
@@ -94,6 +95,7 @@ class Schelling(mesa.Model):
         self.minority_pc = minority_pc
         self.homophily = homophily
         self.radius = radius
+        self.alpha = alpha
         
         self.schedule = mesa.time.RandomActivation(self)
         self.grid = mesa.space.SingleGrid(width, height, torus=True)
@@ -114,6 +116,10 @@ class Schelling(mesa.Model):
         #     self.interested_agents_layer[pos] = 0
         self.grid.add_property_layer(self.interested_agents_layer)
         
+        # Utility Layer
+        self.utility_layer = mesa.space.PropertyLayer("utility", width, height, 0.5) 
+        self.grid.add_property_layer(self.utility_layer)
+
         # self.happy = 0
         self.datacollector = mesa.DataCollector(
             # model_reporters={"happy": "happy"},  # Model-level count of happy agents
