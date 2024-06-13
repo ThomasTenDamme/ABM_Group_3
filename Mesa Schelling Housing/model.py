@@ -42,7 +42,7 @@ class SchellingAgent(mesa.Agent):
         move_util = []
         for cell in available_cells:
             # store as (cell, utility) tuple
-            move_util.append((cell, self.model.utility_func(self, self.pos, cell)))
+            move_util.append((cell, self.model.utility_func(self.model, self, cell)))
         
         # sort by utility
         move_util.sort(key=lambda x: x[1], reverse=True)
@@ -140,8 +140,8 @@ class Schelling(mesa.Model):
         similar = 0
         num_neighbours = 0
         
-        for neighbor in self.model.grid.iter_neighbors(
-            loc, moore=True, radius=self.model.radius
+        for neighbor in self.grid.iter_neighbors(
+            loc, moore=True, radius=self.radius
         ):
             
             num_neighbours += 1
@@ -172,7 +172,7 @@ class Schelling(mesa.Model):
         for agent in self.schedule.agents:
             # Iterate over cells and compare utility to current location, add to interested_agents_layer if better
             for _, loc  in self.grid.coord_iter():
-                utility = self.utility_func(self, agent.pos, loc)
+                utility = self.utility_func(self, agent, loc)
                 
                 if utility > agent.utility:
                     self.interested_agents_layer.modify_cell(loc, lambda v: v + 1)
