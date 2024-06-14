@@ -2,6 +2,10 @@ import mesa
 import numpy as np
 import mesa
 import random
+import matplotlib.pyplot as plt
+import modules
+
+NO_NEIGHBORS_THETA = 0.5
 
 class SchellingAgent(mesa.Agent):
     """
@@ -26,7 +30,7 @@ class SchellingAgent(mesa.Agent):
 
     def calc_theta(self):
         # Calculate theta using the model's get_theta method
-        self.segregation = modules.get_theta(model, self.pos, self.type)
+        self.segregation = modules.get_theta(self.model, self.pos, self.type)
 
     def step(self):
         """
@@ -37,10 +41,14 @@ class SchellingAgent(mesa.Agent):
             3. If the property with the highest utility has a higher utility than the current property, move there
             4. Update the utility of the agent in their new location
         """
+        # update utility
+        self.utility = self.model.utility_func(self.model, self, self.pos)
+        
         self.calc_theta()
 
         # find the available properties to move to
         available_cells = self.model.find_available_cells(self)
+                
         if len(available_cells) < 0:
             return
         
@@ -52,7 +60,7 @@ class SchellingAgent(mesa.Agent):
         
         # sort by utility
         move_util.sort(key=lambda x: x[1], reverse=True)
-
+        
         # move if utility is higher than current
         if move_util[0][1] > self.utility:
             self.model.grid.move_agent(self, move_util[0][0])
@@ -69,6 +77,8 @@ class Schelling(mesa.Model):
     def __init__(
         self,
         property_value_func,
+        income_func,
+        desirability_func,
         utility_func,
         price_func,
         height=20,
@@ -78,6 +88,8 @@ class Schelling(mesa.Model):
         density=0.8,
         minority_pc=0.2,
         alpha=0.5,
+        income_scale=1.5, # the scale by which the income is higher than the property value
+        property_value_weight=0.1,
         mu_theta = 0.5,
         sigma_theta = 0.1,
         seed=None
@@ -98,6 +110,8 @@ class Schelling(mesa.Model):
         super().__init__(seed=seed)
         self.utility_func = utility_func
         self.price_func = price_func
+        self.desirability_func = desirability_func
+        self.prop_value_weight = property_value_weight
         self.height = height
         self.width = width
         self.density = density
@@ -116,7 +130,7 @@ class Schelling(mesa.Model):
         self.grid.add_property_layer(self.property_value_layer)
 
         # Desirability Layer
-        self.desirability_layer = mesa.space.PropertyLayer("desirability", width, height, 1)
+        self.desirability_layer = mesa.space.PropertyLayer("desirability", width, height, 0.5)
         # for _, pos in self.grid.coord_iter():
         #     self.desirability_layer[pos] = 1
         self.grid.add_property_layer(self.desirability_layer)
@@ -140,7 +154,7 @@ class Schelling(mesa.Model):
         for _, pos in self.grid.coord_iter():
             if self.random.random() < self.density:
                 agent_type = 1 if self.random.random() < self.minority_pc else 0
-                budget = 1000
+                budget = income_func(scale=income_scale)
                 agent = SchellingAgent(self.next_id(), self, agent_type, budget)
                 self.grid.place_agent(agent, pos)
                 self.schedule.add(agent)
@@ -172,35 +186,35 @@ class Schelling(mesa.Model):
         # Set desirability layer to the proportion of interested agents
         num_agents = len(self.schedule.agents)
         self.desirability_layer.set_cells(
-            self.interested_agents_layer.data / num_agents
+            self.desirability_func(self, prop_value_weight=self.prop_value_weight)
         )
         
         self.schedule.step()
         self.datacollector.collect(self)
 
-import modules
-# Create and run the model
-model = Schelling(
-    property_value_func=modules.property_value_func,
-    utility_func=modules.utility_func,
-    price_func=modules.price_func,
-    height=20,
-    width=20,
-    homophily=0.5,
-    radius=1,
-    density=0.8,
-    minority_pc=0.2,
-    alpha=0.5,
-    seed=42
-)
+# import modules
+# # Create and run the model
+# model = Schelling(
+#     property_value_func=modules.property_value_quadrants,
+#     utility_func=modules.utility_func,
+#     price_func=modules.price_func,
+#     height=20,
+#     width=20,
+#     homophily=0.5,
+#     radius=1,
+#     density=0.8,
+#     minority_pc=0.2,
+#     alpha=0.5,
+#     seed=42
+# )
 
-# Run the model for a certain number of steps
-for i in range(5):
-    print(i)
-    model.step()
+# # Run the model for a certain number of steps
+# for i in range(5):
+#     print(i)
+#     model.step()
 
-# Retrieve the collected data
-agent_data = model.datacollector.get_agent_vars_dataframe()
-model_data = model.datacollector.get_model_vars_dataframe()
+# # Retrieve the collected data
+# agent_data = model.datacollector.get_agent_vars_dataframe()
+# model_data = model.datacollector.get_model_vars_dataframe()
 
-print(agent_data)
+# print(agent_data)
