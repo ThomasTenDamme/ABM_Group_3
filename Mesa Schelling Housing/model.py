@@ -3,8 +3,6 @@ import numpy as np
 import mesa
 import random
 
-NO_NEIGHBORS_THETA = 0.5
-
 class SchellingAgent(mesa.Agent):
     """
     Schelling segregation agent
@@ -23,6 +21,12 @@ class SchellingAgent(mesa.Agent):
         self.type = agent_type
         self.budget = budget
         self.utility = 0.5
+        self.segregation = None
+        self.move_counter = 0
+
+    def calc_theta(self):
+        # Calculate theta using the model's get_theta method
+        self.segregation = modules.get_theta(model, self.pos, self.type)
 
     def step(self):
         """
@@ -33,6 +37,8 @@ class SchellingAgent(mesa.Agent):
             3. If the property with the highest utility has a higher utility than the current property, move there
             4. Update the utility of the agent in their new location
         """
+        self.calc_theta()
+
         # find the available properties to move to
         available_cells = self.model.find_available_cells(self)
         if len(available_cells) < 0:
@@ -52,6 +58,7 @@ class SchellingAgent(mesa.Agent):
             self.model.grid.move_agent(self, move_util[0][0])
             # update utility
             self.utility = move_util[0][1]
+            self.move_counter += 1
 
 
 class Schelling(mesa.Model):
@@ -124,9 +131,9 @@ class Schelling(mesa.Model):
         self.utility_layer = mesa.space.PropertyLayer("utility", width, height, 0.5) 
         self.grid.add_property_layer(self.utility_layer)
 
-        # self.happy = 0
+        #Data Collectors
         self.datacollector = mesa.DataCollector(
-            # model_reporters={"happy": "happy"},  # Model-level count of happy agents
+            agent_reporters={"Utility": "utility", "Segregation":"segregation", "Moves":"move_counter"}, model_reporters={"Desirability": self.desirability_layer.data.tolist}  # Collect the utility of each agent
         )
 
         # Set up agents
@@ -139,27 +146,6 @@ class Schelling(mesa.Model):
                 self.schedule.add(agent)
 
         self.datacollector.collect(self)
-
-    def get_theta(self, loc: tuple, type):
-        similar = 0
-        num_neighbours = 0
-        
-        for neighbor in self.grid.iter_neighbors(
-            loc, moore=True, radius=self.radius
-        ):
-            
-            num_neighbours += 1
-            if neighbor.type == type:
-                similar += 1
-        
-        if num_neighbours == 0:
-            return NO_NEIGHBORS_THETA
-                
-        proportion_similar = similar / num_neighbours
-
-        theta = np.exp(-((proportion_similar - self.mu_theta) ** 2) / (2 * self.sigma_theta ** 2))
-
-        return theta #proportion_similar
 
     def find_available_cells(self, agent):
         available_cells = []
@@ -191,3 +177,30 @@ class Schelling(mesa.Model):
         
         self.schedule.step()
         self.datacollector.collect(self)
+
+import modules
+# Create and run the model
+model = Schelling(
+    property_value_func=modules.property_value_func,
+    utility_func=modules.utility_func,
+    price_func=modules.price_func,
+    height=20,
+    width=20,
+    homophily=0.5,
+    radius=1,
+    density=0.8,
+    minority_pc=0.2,
+    alpha=0.5,
+    seed=42
+)
+
+# Run the model for a certain number of steps
+for i in range(5):
+    print(i)
+    model.step()
+
+# Retrieve the collected data
+agent_data = model.datacollector.get_agent_vars_dataframe()
+model_data = model.datacollector.get_model_vars_dataframe()
+
+print(agent_data)
