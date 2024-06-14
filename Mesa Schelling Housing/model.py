@@ -71,6 +71,8 @@ class Schelling(mesa.Model):
         density=0.8,
         minority_pc=0.2,
         alpha=0.5,
+        mu_theta = 0.5,
+        sigma_theta = 0.1,
         seed=None
     ):
         """
@@ -96,6 +98,8 @@ class Schelling(mesa.Model):
         self.homophily = homophily
         self.radius = radius
         self.alpha = alpha
+        self.mu_theta = mu_theta
+        self.sigma_theta = sigma_theta
         
         self.schedule = mesa.time.RandomActivation(self)
         self.grid = mesa.space.SingleGrid(width, height, torus=True)
@@ -152,8 +156,10 @@ class Schelling(mesa.Model):
             return NO_NEIGHBORS_THETA
                 
         proportion_similar = similar / num_neighbours
-        
-        return proportion_similar
+
+        theta = np.exp(-((proportion_similar - self.mu_theta) ** 2) / (2 * self.sigma_theta ** 2))
+
+        return theta #proportion_similar
 
     def find_available_cells(self, agent):
         available_cells = []
