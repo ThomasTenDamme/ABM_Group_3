@@ -1,6 +1,6 @@
 import mesa
 from model import Schelling
-from modules import property_value_func_random, utility_func, price_func, income_func, property_value_quadrants, desirability_func
+from modules import property_value_func_random, utility_func, price_func, income_func, property_value_quadrants, desirability_func, compute_similar_neighbours
 
 
 def get_happy_agents(model):
@@ -44,6 +44,9 @@ model_params = {
     "utility_func": utility_func,
     "price_func": price_func,
     "desirability_func": desirability_func,
+    ####
+    "compute_similar_neighbours": compute_similar_neighbours,
+    ####
     "height": height,
     "width": width,
     "density": mesa.visualization.Slider(

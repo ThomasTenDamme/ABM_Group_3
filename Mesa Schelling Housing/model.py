@@ -81,6 +81,9 @@ class Schelling(mesa.Model):
         desirability_func,
         utility_func,
         price_func,
+        ##########
+        compute_similar_neighbours,
+        ##########
         height=20,
         width=20,
         homophily=0.5,
@@ -90,8 +93,9 @@ class Schelling(mesa.Model):
         alpha=0.5,
         income_scale=1.5, # the scale by which the income is higher than the property value
         property_value_weight=0.1,
-        mu_theta = 0.5,
+        mu_theta = 0.8,
         sigma_theta = 0.1,
+        entropy = -1, # initialize entropy for a non-possible value
         seed=None
     ):
         """
@@ -121,7 +125,13 @@ class Schelling(mesa.Model):
         self.alpha = alpha
         self.mu_theta = mu_theta
         self.sigma_theta = sigma_theta
+        self.entropy = entropy
         
+        #############
+        self.compute_similar_neighbours = compute_similar_neighbours
+        self.neighbor_similarity_counter = {}
+        #############
+
         self.schedule = mesa.time.RandomActivation(self)
         self.grid = mesa.space.SingleGrid(width, height, torus=True)
 
@@ -175,6 +185,10 @@ class Schelling(mesa.Model):
         # Set the count of agents who like to move somewhere to 0 for all cells
         self.interested_agents_layer.set_cells(0)
 
+        ########
+        self.neighbor_similarity_counter.clear()
+        ########
+
         for agent in self.schedule.agents:
             # Iterate over cells and compare utility to current location, add to interested_agents_layer if better
             for _, loc  in self.grid.coord_iter():
@@ -182,7 +196,27 @@ class Schelling(mesa.Model):
                 
                 if utility > agent.utility:
                     self.interested_agents_layer.modify_cell(loc, lambda v: v + 1)
-        
+
+        ###### ADDED #############
+            # Compute number of agents with the same number of similar neighbours 
+            similar_neighbors = self.compute_similar_neighbours(self, agent)
+            if similar_neighbors not in self.neighbor_similarity_counter:
+                self.neighbor_similarity_counter[similar_neighbors] = 0
+            self.neighbor_similarity_counter[similar_neighbors] += 1
+
+        # Compute total number of agents included
+        total_agents = sum(self.neighbor_similarity_counter.values())
+
+        # Compute entropy and store it 
+        current_entopy = 0
+        for _, p in self.neighbor_similarity_counter.items():
+            if p > 0:  # To avoid domain error for log(0)
+                probability = p / total_agents
+                value = probability * np.log10(probability)
+                current_entopy += value
+        self.entropy = -current_entopy
+        #############################
+
         # Set desirability layer to the proportion of interested agents
         num_agents = len(self.schedule.agents)
         self.desirability_layer.set_cells(
@@ -195,26 +229,53 @@ class Schelling(mesa.Model):
 # import modules
 # # Create and run the model
 # model = Schelling(
-#     property_value_func=modules.property_value_quadrants,
-#     utility_func=modules.utility_func,
-#     price_func=modules.price_func,
-#     height=20,
-#     width=20,
-#     homophily=0.5,
-#     radius=1,
-#     density=0.8,
-#     minority_pc=0.2,
-#     alpha=0.5,
-#     seed=42
+    # property_value_func=modules.property_value_quadrants,
+    # utility_func=modules.utility_func,
+    # price_func=modules.price_func,
+    # height=20,
+    # width=20,
+    # homophily=0.5,
+    # radius=1,
+    # density=0.8,
+    # minority_pc=0.2,
+    # alpha=0.5,
+    # seed=42
 # )
 
 # # Run the model for a certain number of steps
 # for i in range(5):
-#     print(i)
-#     model.step()
+    # print(i)
+    # model.step()
 
 # # Retrieve the collected data
 # agent_data = model.datacollector.get_agent_vars_dataframe()
 # model_data = model.datacollector.get_model_vars_dataframe()
 
 # print(agent_data)
+
+### ADDED ####
+"""import modules
+# # Create and run the model
+model = Schelling(
+     property_value_func=modules.property_value_quadrants,
+     income_func=modules.income_func,
+     desirability_func=modules.desirability_func,
+     utility_func=modules.utility_func,
+     price_func=modules.price_func,
+     compute_similar_neighbours=modules.compute_similar_neighbours,
+     height=20,
+     width=20,
+     homophily=0.5,
+     radius=1,
+     density=0.8,
+     minority_pc=0.2,
+     alpha=0.5,
+     seed=42
+ )
+
+# # Run the model for a certain number of steps
+for i in range(5):
+     print(i)
+     #print(model.entropy)
+     print(model.neighbor_similarity_counter)
+     model.step()"""
