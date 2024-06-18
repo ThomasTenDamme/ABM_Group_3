@@ -86,7 +86,6 @@ class Schelling(mesa.Model):
         ##########
         height=20,
         width=20,
-        homophily=0.5,
         radius=1,
         density=0.8,
         minority_pc=0.2,
@@ -105,7 +104,6 @@ class Schelling(mesa.Model):
             width, height: Size of the space.
             density: Initial chance for a cell to be populated
             minority_pc: Chance for an agent to be in minority class
-            homophily: Minimum number of agents of the same class needed to be happy
             radius: Search radius for checking similarity
             seed: Seed for reproducibility
             property_value: Value for the property
@@ -120,7 +118,6 @@ class Schelling(mesa.Model):
         self.width = width
         self.density = density
         self.minority_pc = minority_pc
-        self.homophily = homophily
         self.radius = radius
         self.alpha = alpha
         self.mu_theta = mu_theta
@@ -235,7 +232,6 @@ class Schelling(mesa.Model):
     # price_func=modules.price_func,
     # height=20,
     # width=20,
-    # homophily=0.5,
     # radius=1,
     # density=0.8,
     # minority_pc=0.2,
@@ -266,7 +262,6 @@ model = Schelling(
      compute_similar_neighbours=modules.compute_similar_neighbours,
      height=20,
      width=20,
-     homophily=0.5,
      radius=1,
      density=0.8,
      minority_pc=0.2,
