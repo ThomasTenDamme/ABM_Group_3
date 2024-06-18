@@ -93,9 +93,9 @@ class Schelling(mesa.Model):
         alpha=0.5,
         income_scale=1.5, # the scale by which the income is higher than the property value
         property_value_weight=0.1,
-        mu_theta = 0.8,
-        sigma_theta = 0.1,
-        entropy = -1, # initialize entropy for a non-possible value
+        mu_theta = 0.4,
+        sigma_theta = 0.6,
+        entropy = None, 
         seed=None
     ):
         """
@@ -225,6 +225,7 @@ class Schelling(mesa.Model):
         
         self.schedule.step()
         self.datacollector.collect(self)
+        print(self.datacollector)
 
 # import modules
 # # Create and run the model
@@ -277,5 +278,4 @@ model = Schelling(
 for i in range(5):
      print(i)
      #print(model.entropy)
-     print(model.neighbor_similarity_counter)
      model.step()"""

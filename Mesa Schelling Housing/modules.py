@@ -108,10 +108,10 @@ def get_theta(model: mesa.Model, loc: tuple, type):
        
     proportion_similar = similar / num_neighbours
 
-    #theta = np.exp(-((proportion_similar - model.mu_theta) ** 2) / (2 * model.sigma_theta ** 2))
+    theta = np.exp(-((proportion_similar - model.mu_theta) ** 2) / (2 * model.sigma_theta ** 2))
     
-    #return theta #proportion_similar
-    return proportion_similar
+    return theta # proportion_similar
+    #return proportion_similar
 
 
 def compute_similar_neighbours(model:mesa.Model,agent:mesa.Agent):
