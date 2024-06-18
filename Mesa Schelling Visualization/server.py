@@ -25,9 +25,10 @@ def color_gradient(value, min_val, max_val):
     b = int(255 * (1 - value))
     return "#{:02x}{:02x}{:02x}".format(r, g, b)
 
-def schelling_draw(agent):
+def schelling_draw(agent, value_io_desire=False, draw_agents=True):
     """
     Portrayal Method for canvas
+    value_io_desire = boolean, if True the value of the property is visualized instead of the desirability
     """
     # portray property value
     if agent is None:
@@ -37,33 +38,58 @@ def schelling_draw(agent):
     if agent.type == -1:
         portrayal = {"Shape": "rect", "w": 1, "h": 1, "Filled": "true", "Layer": 0}
         
-        desirability = agent.model.desirability_layer.data[agent.pos]
-        color = color_gradient(desirability, 0, 1)
+        if value_io_desire:
+            property_value = agent.model.property_value_layer.data[agent.pos]
+            color = color_gradient(property_value, 0, 2000)
+        else: 
+            desirability = agent.model.desirability_layer.data[agent.pos]
+            color = color_gradient(desirability, 0, 1)
         portrayal["Color"] = [color, color]
 
         return portrayal
 
     # on layer 1, portray agents
-    portrayal = {"Shape": "circle", "r": 0.5, "Filled": "true", "Layer": 1}
+    if draw_agents:
+        portrayal = {"Shape": "circle", "r": 0.5, "Filled": "true", "Layer": 1}
 
-    if agent.type == 0:
-        portrayal["Color"] = ["#FFFFFF", "#FFFFFF"]
-        portrayal["stroke_color"] = "#000000"
-    else:
-        portrayal["Color"] = ["#000000", "#000000"]
-        portrayal["stroke_color"] = "#FFFFFF"
-    return portrayal
+        if agent.type == 0:
+            portrayal["Color"] = ["#FFFFFF", "#FFFFFF"]
+            portrayal["stroke_color"] = "#000000"
+        else:
+            portrayal["Color"] = ["#000000", "#000000"]
+            portrayal["stroke_color"] = "#FFFFFF"
+        return portrayal
+
+def draw_main(agent):
+    return schelling_draw(agent, value_io_desire=False, draw_agents=True)
+
+def draw_other(agent):
+    return schelling_draw(agent, value_io_desire=True, draw_agents=True)
+
+def whitespace(_):
+    return ""
 
 width = 20
 height = 20
 
-canvas_element = mesa.visualization.CanvasGrid(
-    portrayal_method=schelling_draw,
+# grid of agents and desirability
+canvas_main = mesa.visualization.CanvasGrid(
+    portrayal_method=draw_main,
     grid_width=width,
     grid_height=height,
     canvas_width=500,
     canvas_height=500,
 )
+
+# grid of just property value
+canvas_other = mesa.visualization.CanvasGrid(
+    portrayal_method=draw_other,
+    grid_width=width,
+    grid_height=height,
+    canvas_width=500,
+    canvas_height=500,
+)
+
 happy_chart = mesa.visualization.ChartModule([{"Label": "happy", "Color": "Black"}])
 
 model_params = {
@@ -105,7 +131,13 @@ model_params = {
 
 server = mesa.visualization.ModularServer(
     model_cls=Schelling,
-    visualization_elements=[canvas_element, get_happy_agents, happy_chart],
+    visualization_elements=[
+        canvas_main, 
+        whitespace,
+        canvas_other, 
+        get_happy_agents,   
+        happy_chart
+    ],
     name="Schelling Segregation Model",
     model_params=model_params,
 )
