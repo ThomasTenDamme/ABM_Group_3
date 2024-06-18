@@ -7,6 +7,17 @@ import modules
 
 NO_NEIGHBORS_THETA = 0.5
 
+class Property(mesa.Agent):
+    """
+    Agent used for visualization of the property value
+    """
+    def __init__(self, unique_id, model):
+        super().__init__(unique_id, model)
+        self.type = -1
+
+        def step(self):
+            pass
+
 class SchellingAgent(mesa.Agent):
     """
     Schelling segregation agent
@@ -86,15 +97,16 @@ class Schelling(mesa.Model):
         ##########
         height=20,
         width=20,
+        homophily=0.5,
         radius=1,
         density=0.8,
         minority_pc=0.2,
         alpha=0.5,
         income_scale=1.5, # the scale by which the income is higher than the property value
         property_value_weight=0.1,
-        mu_theta = 0.4,
-        sigma_theta = 0.6,
-        entropy = None, 
+        mu_theta = 0.8,
+        sigma_theta = 0.1,
+        entropy = -1, # initialize entropy for a non-possible value
         seed=None
     ):
         """
@@ -104,6 +116,7 @@ class Schelling(mesa.Model):
             width, height: Size of the space.
             density: Initial chance for a cell to be populated
             minority_pc: Chance for an agent to be in minority class
+            homophily: Minimum number of agents of the same class needed to be happy
             radius: Search radius for checking similarity
             seed: Seed for reproducibility
             property_value: Value for the property
@@ -118,6 +131,7 @@ class Schelling(mesa.Model):
         self.width = width
         self.density = density
         self.minority_pc = minority_pc
+        self.homophily = homophily
         self.radius = radius
         self.alpha = alpha
         self.mu_theta = mu_theta
@@ -130,7 +144,7 @@ class Schelling(mesa.Model):
         #############
 
         self.schedule = mesa.time.RandomActivation(self)
-        self.grid = mesa.space.SingleGrid(width, height, torus=True)
+        self.grid = mesa.space.MultiGrid(width, height, torus=True)
 
         # Property Value Layer
         self.property_value_layer = property_value_func(name="property_values", width=width, height=height)
@@ -159,6 +173,9 @@ class Schelling(mesa.Model):
 
         # Set up agents
         for _, pos in self.grid.coord_iter():
+            # place property agent on each cell
+            property_agent = Property(self.next_id(), self)
+            self.grid.place_agent(property_agent, pos)
             if self.random.random() < self.density:
                 agent_type = 1 if self.random.random() < self.minority_pc else 0
                 budget = income_func(scale=income_scale)
@@ -171,8 +188,11 @@ class Schelling(mesa.Model):
     def find_available_cells(self, agent):
         available_cells = []
         for _, pos in self.grid.coord_iter():
-            if self.grid.is_cell_empty(pos):
-                available_cells.append(pos)        
+            # cell is available if it contains a property agent and no other agent
+            agents = self.grid.get_cell_list_contents([pos])
+            if len(agents) == 1 and isinstance(agents[0], Property):
+                available_cells.append(pos)
+                
         return available_cells
 
     def step(self):
@@ -222,7 +242,6 @@ class Schelling(mesa.Model):
         
         self.schedule.step()
         self.datacollector.collect(self)
-        print(self.datacollector)
 
 # import modules
 # # Create and run the model
@@ -232,6 +251,7 @@ class Schelling(mesa.Model):
     # price_func=modules.price_func,
     # height=20,
     # width=20,
+    # homophily=0.5,
     # radius=1,
     # density=0.8,
     # minority_pc=0.2,
@@ -262,6 +282,7 @@ model = Schelling(
      compute_similar_neighbours=modules.compute_similar_neighbours,
      height=20,
      width=20,
+     homophily=0.5,
      radius=1,
      density=0.8,
      minority_pc=0.2,
@@ -273,4 +294,5 @@ model = Schelling(
 for i in range(5):
      print(i)
      #print(model.entropy)
+     print(model.neighbor_similarity_counter)
      model.step()"""
