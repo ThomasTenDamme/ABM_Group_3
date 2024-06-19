@@ -169,7 +169,9 @@ class Schelling(mesa.Model):
                              "Segregation":"segregation", 
                              "Moves":"move_counter"}, 
             model_reporters={"Desirability entropy": "desirability_entropy", "Agent entropy": "agent_entropy", "Desirability": self.desirability_layer.data.tolist,
-                             "Average Utility": self.get_average_util}  # Collect the utility of each agent
+                             "Average Utility": self.get_average_util,
+                             "Minority Average Utility" : self.minority_average_util,
+                             "Majority Average Utility" : self.majority_average_util}  # Collect the utility of each agent
         )
 
         # Set up agents
@@ -187,6 +189,18 @@ class Schelling(mesa.Model):
         if len(self.schedule.agents) == 0:
             return 0
         return sum([a.utility for a in self.schedule.agents]) / len(self.schedule.agents)
+    
+    def minority_average_util(self):
+        minority_agents = [a for a in self.schedule.agents if a.type == 1]
+        if len(minority_agents) == 0:
+            return 0
+        return sum([a.utility for a in minority_agents]) / len(minority_agents)
+    
+    def majority_average_util(self):
+        majority_agents = [a for a in self.schedule.agents if a.type == 0]
+        if len(majority_agents) == 0:
+            return 0
+        return sum([a.utility for a in majority_agents]) / len(majority_agents)
     
     def find_available_cells(self, agent):
         available_cells = []
