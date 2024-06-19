@@ -123,9 +123,10 @@ class Schelling(mesa.Model):
         self.alpha = alpha
         self.mu_theta = mu_theta
         self.sigma_theta = sigma_theta
+        ############
         self.agent_entropy = agent_entropy
         self.desirability_entropy = desirability_entropy
-        
+        #############
         #############
         self.compute_similar_neighbours = compute_similar_neighbours
         self.neighbor_similarity_counter = {}
@@ -153,6 +154,12 @@ class Schelling(mesa.Model):
         # Utility Layer
         self.utility_layer = mesa.space.PropertyLayer("utility", width, height, 0.5) 
         self.grid.add_property_layer(self.utility_layer)
+
+        ##############
+        self.datacollector_attempt = mesa.DataCollector(
+            model_reporters={"Desirability entropy": "desirability_entropy", "Agent entropy": "agent_entropy"}
+        )
+        ##############
 
         #Data Collectors
         self.datacollector = mesa.DataCollector(
@@ -225,11 +232,17 @@ class Schelling(mesa.Model):
         ##### Compute entropy for desirability ###########
         desirability_current_entropy = modules.compute_entropy(self)
         self.desirability_entropy = desirability_current_entropy
+
+        # add it to entropy layer for desirability
+
         ############################
 
         self.schedule.step()
         self.datacollector.collect(self)
-        
+
+        ###################
+        self.datacollector_attempt.collect(self)
+        ###################
 
 # import modules
 # # Create and run the model
@@ -257,7 +270,7 @@ class Schelling(mesa.Model):
 
 # print(agent_data)
 
-### ADDED ####
+"""### ADDED ####
 import modules
 # # Create and run the model
 model = Schelling(
@@ -279,5 +292,6 @@ model = Schelling(
 # # Run the model for a certain number of steps
 for i in range(5):
      print(i)
-     #print(model.entropy)
-     model.step()
+     print(model.agent_entropy)
+     print(model.desirability_entropy)
+     model.step()"""
