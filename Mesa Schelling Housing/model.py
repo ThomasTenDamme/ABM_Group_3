@@ -30,7 +30,7 @@ class SchellingAgent(mesa.Agent):
 
     def calc_theta(self):
         # Calculate theta using the model's get_theta method
-        self.segregation = modules.get_theta(self.model, self.pos, self.type)
+        _, self.segregation = modules.get_theta(self.model, self.pos, self.type)
 
     def step(self):
         """
@@ -166,7 +166,11 @@ class Schelling(mesa.Model):
 
         #Data Collectors
         self.datacollector = mesa.DataCollector(
-            agent_reporters={"Utility": "utility", "Segregation":"segregation", "Moves":"move_counter"}, model_reporters={"Desirability": self.desirability_layer.data.tolist}  # Collect the utility of each agent
+            agent_reporters={"Utility": "utility", 
+                             "Segregation":"segregation", 
+                             "Moves":"move_counter"}, 
+            model_reporters={"Desirability": self.desirability_layer.data.tolist,
+                             "Average Utility": self.get_average_util}  # Collect the utility of each agent
         )
 
         # Set up agents
@@ -180,6 +184,11 @@ class Schelling(mesa.Model):
 
         self.datacollector.collect(self)
 
+    def get_average_util(self):
+        if len(self.schedule.agents) == 0:
+            return 0
+        return sum([a.utility for a in self.schedule.agents]) / len(self.schedule.agents)
+    
     def find_available_cells(self, agent):
         available_cells = []
         for _, pos in self.grid.coord_iter():
@@ -195,7 +204,7 @@ class Schelling(mesa.Model):
 
         for x in range(self.width):
             for y in range(self.height):
-                gi_star_values[x, y] = calculate_gi_star(self.grid, values, x, y, distance_threshold)
+                gi_star_values[x, y] = self.calculate_gi_star(self.grid, values, x, y, distance_threshold)
 
         return gi_star_values
     
