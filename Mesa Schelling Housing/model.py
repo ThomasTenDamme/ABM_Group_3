@@ -83,6 +83,7 @@ class Schelling(mesa.Model):
         price_func,
         ##########
         compute_similar_neighbours,
+        calculate_gi_star,
         ##########
         height=20,
         width=20,
@@ -131,6 +132,8 @@ class Schelling(mesa.Model):
         self.compute_similar_neighbours = compute_similar_neighbours
         self.neighbor_similarity_counter = {}
         #############
+        self.calculate_gi_star = calculate_gi_star
+
 
         self.schedule = mesa.time.RandomActivation(self)
         self.grid = mesa.space.SingleGrid(width, height, torus=True)
@@ -184,6 +187,20 @@ class Schelling(mesa.Model):
                 available_cells.append(pos)        
         return available_cells
 
+    ###### ADDED ############# 19/06
+    def calculate_hotspots(self, distance_threshold):
+        desirability = self.desirability_layer.data
+        values = {(i, j): desirability[i][j] for i in range(self.width) for j in range(self.height)}
+        gi_star_values = np.zeros((self.width, self.height))
+
+        for x in range(self.width):
+            for y in range(self.height):
+                gi_star_values[x, y] = calculate_gi_star(self.grid, values, x, y, distance_threshold)
+
+        return gi_star_values
+    
+    ##################
+
     def step(self):
         """
         Run one step of the model.
@@ -229,6 +246,12 @@ class Schelling(mesa.Model):
             self.desirability_func(self, prop_value_weight=self.prop_value_weight)
         )
         
+        #save hotspot data for every 10 steps in order to make plots
+        #if self.schedule.steps % 10 == 0:
+         #   distance_threshold = 3
+          #  gi_star_values = self.calculate_hotspots(distance_threshold)
+           # self.gi_star_history.append((self.schedule.steps, gi_star_values))
+
         ##### Compute entropy for desirability ###########
         desirability_current_entropy = modules.compute_entropy(self)
         self.desirability_entropy = desirability_current_entropy
