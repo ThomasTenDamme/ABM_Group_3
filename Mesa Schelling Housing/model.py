@@ -1,4 +1,4 @@
-import mesa
+import mesa, time
 import numpy as np
 import mesa
 import random
@@ -67,6 +67,7 @@ class SchellingAgent(mesa.Agent):
             # update utility
             self.utility = move_util[0][1]
             self.move_counter += 1
+            self.model.recent_moves[-1] += 1
 
 
 class Schelling(mesa.Model):
@@ -78,6 +79,7 @@ class Schelling(mesa.Model):
         self,
         property_value_func,
         income_func,
+        update_interested_agents_func,
         desirability_func,
         utility_func,
         price_func,
@@ -115,6 +117,8 @@ class Schelling(mesa.Model):
         self.utility_func = utility_func
         self.price_func = price_func
         self.desirability_func = desirability_func
+        self.concurrent = False
+        self.update_interested_agents_func = update_interested_agents_func
         self.prop_value_weight = property_value_weight
         self.height = height
         self.width = width
@@ -168,7 +172,9 @@ class Schelling(mesa.Model):
             agent_reporters={"Utility": "utility", 
                              "Segregation":"segregation", 
                              "Moves":"move_counter"}, 
-            model_reporters={"Desirability entropy": "desirability_entropy", "Agent entropy": "agent_entropy", "Desirability": self.desirability_layer.data.tolist,
+            model_reporters={"Desirability entropy": "desirability_entropy", 
+                             "Agent entropy": "agent_entropy", 
+                             "Desirability": self.desirability_layer.data.tolist,
                              "Average Utility": self.get_average_util,
                              "Minority Average Utility" : self.minority_average_util,
                              "Majority Average Utility" : self.majority_average_util}  # Collect the utility of each agent
@@ -184,6 +190,15 @@ class Schelling(mesa.Model):
                 self.schedule.add(agent)
 
         self.datacollector.collect(self)
+        
+        self.timings = {
+            "Updating Desirability" : [],
+            "Updating Entropies" : [],
+            "Agent Step" : [],
+            "Data Collection" : []
+        }
+        
+        self.recent_moves = [10]*5
 
     def get_average_util(self):
         if len(self.schedule.agents) == 0:
@@ -227,31 +242,48 @@ class Schelling(mesa.Model):
         """
         Run one step of the model.
         """
+        self.recent_moves.pop(0)
+        self.recent_moves.append(0)
+        
+        t = time.time()
         # Set the count of agents who like to move somewhere to 0 for all cells
         self.interested_agents_layer.set_cells(0)
 
         ########
         self.neighbor_similarity_counter.clear()
         ########
-
+        
+        # New concurrent function to update interested agents
+        if self.concurrent:
+            self.update_interested_agents_func(self)
+        
         for agent in self.schedule.agents:
-            # Iterate over cells and compare utility to current location, add to interested_agents_layer if better
-            for _, loc  in self.grid.coord_iter():
-                utility = self.utility_func(self, agent, loc)
-                
-                if utility > agent.utility:
-                    self.interested_agents_layer.modify_cell(loc, lambda v: v + 1)
+            if not self.concurrent:
+                # Iterate over cells and compare utility to current location, add to interested_agents_layer if better
+                for _, loc  in self.grid.coord_iter():
+                    utility = self.utility_func(self, agent, loc, budgetless=False)
+                    
+                    if utility > agent.utility:
+                        self.interested_agents_layer.modify_cell(loc, lambda v: v + 1)
 
-        ###### ADDED #############
+            ###### ADDED #############
             # Compute number of agents with the same number of similar neighbours 
             similar_neighbors = self.compute_similar_neighbours(self, agent)
             if similar_neighbors not in self.neighbor_similarity_counter:
                 self.neighbor_similarity_counter[similar_neighbors] = 0
             self.neighbor_similarity_counter[similar_neighbors] += 1
 
+        # Set desirability layer to the proportion of interested agents
+        self.desirability_layer.set_cells(
+            self.desirability_func(self, prop_value_weight=self.prop_value_weight)
+        )
+
+        self.timings["Updating Desirability"].append(time.time() - t)
+        t = time.time()
+        
         # Compute total number of agents included
         total_agents = len(self.schedule.agents) #sum(self.neighbor_similarity_counter.values())
-
+        
         # Compute agent entropy and store it 
         current_agent_entopy = 0
         for _, p in self.neighbor_similarity_counter.items():
@@ -261,12 +293,6 @@ class Schelling(mesa.Model):
                 current_agent_entopy += value
         self.agent_entropy = -current_agent_entopy
         #############################
-        
-        # Set desirability layer to the proportion of interested agents
-        #num_agents = len(self.schedule.agents)
-        self.desirability_layer.set_cells(
-            self.desirability_func(self, prop_value_weight=self.prop_value_weight)
-        )
         
         #save hotspot data for every 10 steps in order to make plots
         #if self.schedule.steps % 10 == 0:
@@ -278,12 +304,26 @@ class Schelling(mesa.Model):
         desirability_current_entropy = modules.compute_entropy(self)
         self.desirability_entropy = desirability_current_entropy
 
+        self.timings["Updating Entropies"].append(time.time() - t)
+        t = time.time()
         # add it to entropy layer for desirability
 
         ############################
 
         self.schedule.step()
+
+        self.timings["Agent Step"].append(time.time() - t)
+        t = time.time()
+        
         self.datacollector.collect(self)
+        
+        self.timings["Data Collection"].append(time.time() - t)
+
+        print([f"{k}: {sum(v) / len(v):.2f}s" for k, v in self.timings.items()])
+
+        if sum(self.recent_moves) == 0:
+            # print("No moves made last few steps, stopping")
+            self.running = False
 
         ###################
         #self.datacollector_attempt.collect(self)
