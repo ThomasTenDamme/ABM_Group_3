@@ -138,7 +138,7 @@ server = mesa.visualization.ModularServer(
         get_happy_agents,   
         happy_chart
     ],
-    name="Schelling Segregation Model",
+    name="Schelling Segregation Model with Housing Market",
     model_params=model_params,
 )
 

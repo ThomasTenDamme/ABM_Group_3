@@ -89,7 +89,7 @@ model_params = {
 server = mesa.visualization.ModularServer(
     model_cls=Schelling,
     visualization_elements=[canvas_element, get_average_utility, utility_chart],
-    name="Schelling Segregation Model",
+    name="Schelling Segregation Model with Housing Market",
     model_params=model_params,
 )
 

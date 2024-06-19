@@ -82,7 +82,7 @@ class SchellingAgent(mesa.Agent):
 
 class Schelling(mesa.Model):
     """
-    Model class for the Schelling segregation model.
+    Schelling segregation model with added housing market dynamics.
     """
 
     def __init__(
