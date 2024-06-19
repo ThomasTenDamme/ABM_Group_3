@@ -159,9 +159,9 @@ class Schelling(mesa.Model):
         self.grid.add_property_layer(self.utility_layer)
 
         ##############
-        self.datacollector_attempt = mesa.DataCollector(
-            model_reporters={"Desirability entropy": "desirability_entropy", "Agent entropy": "agent_entropy"}
-        )
+        #self.datacollector_attempt = mesa.DataCollector(
+        #    model_reporters={"Desirability entropy": "desirability_entropy", "Agent entropy": "agent_entropy"}
+        #)
         ##############
 
         #Data Collectors
@@ -169,7 +169,7 @@ class Schelling(mesa.Model):
             agent_reporters={"Utility": "utility", 
                              "Segregation":"segregation", 
                              "Moves":"move_counter"}, 
-            model_reporters={"Desirability": self.desirability_layer.data.tolist,
+            model_reporters={"Desirability entropy": "desirability_entropy", "Agent entropy": "agent_entropy", "Desirability": self.desirability_layer.data.tolist,
                              "Average Utility": self.get_average_util}  # Collect the utility of each agent
         )
 
@@ -273,7 +273,7 @@ class Schelling(mesa.Model):
         self.datacollector.collect(self)
 
         ###################
-        self.datacollector_attempt.collect(self)
+        #self.datacollector_attempt.collect(self)
         ###################
 
 # import modules
