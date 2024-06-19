@@ -24,7 +24,7 @@ class SchellingAgent(mesa.Agent):
         super().__init__(unique_id, model)
         self.type = agent_type
         self.budget = budget
-        self.utility = 0.5
+        self.utility = 0.1
         self.segregation = None
         self.move_counter = 0
 
@@ -133,7 +133,6 @@ class Schelling(mesa.Model):
         self.neighbor_similarity_counter = {}
         #############
         self.calculate_gi_star = calculate_gi_star
-
 
         self.schedule = mesa.time.RandomActivation(self)
         self.grid = mesa.space.SingleGrid(width, height, torus=True)

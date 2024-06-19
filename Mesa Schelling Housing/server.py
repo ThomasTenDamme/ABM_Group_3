@@ -36,10 +36,10 @@ canvas_element = mesa.visualization.CanvasGrid(
     canvas_width=500,
     canvas_height=500,
 )
-utility_chart = mesa.visualization.ChartModule([{"Label": "Avg. utility", "Color": "Black"}])
+utility_chart = mesa.visualization.ChartModule([{"Label": "Average Utility", "Color": "Black"}])
 
 model_params = {
-    "property_value_func": property_value_equal,
+    "property_value_func": property_value_quadrants,
     "income_func": income_func,
     "utility_func": utility_func,
     "price_func": price_func,
