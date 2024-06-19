@@ -153,3 +153,25 @@ def compute_entropy(model: mesa.model):
     layer_entropy = entropy(probabilities)
     
     return layer_entropy
+
+def calculate_gi_star(grid, values, x, y, d):
+    sum_wx = 0
+    sum_w = 0
+    sum_wx2 = 0
+    n = len(values)
+
+    for (i, j), value in values.items():
+        dist = np.sqrt((x - i)**2 + (y - j)**2)
+        if dist <= d:
+            w = 1  # Binary weight, 1 if within distance threshold
+            sum_wx += w * value
+            sum_w += w
+            sum_wx2 += w * value**2
+
+    mean_x = np.mean(list(values.values()))
+    s = np.std(list(values.values()))
+
+    numerator = sum_wx - mean_x * sum_w
+    denominator = s * np.sqrt((n * sum_w - sum_w**2) / (n - 1))
+
+    return numerator / denominator if denominator != 0 else 0
