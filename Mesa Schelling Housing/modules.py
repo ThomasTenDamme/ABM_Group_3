@@ -1,7 +1,11 @@
 import mesa
 import mesa.agent
+import mesa.model
 import numpy as np
-
+############
+from collections import Counter
+from scipy.stats import entropy
+############
 
 NO_NEIGHBORS_THETA = 0.5
 
@@ -132,3 +136,20 @@ def compute_similar_neighbours(model:mesa.Model,agent:mesa.Agent):
         return 0 #NO NEIGHBORS
 
     return similar
+
+def compute_entropy(model: mesa.model):
+    # Flatten the layer's cell values into a single list
+    desirability = model.desirability_layer.data 
+    cell_values = [cell_value for row in desirability for cell_value in row]
+    
+    # Compute the frequency of each unique value
+    value_counts = Counter(cell_values)
+    
+    # Compute the probabilities for each unique value
+    total_cells = len(cell_values)
+    probabilities = [count / total_cells for count in value_counts.values()]
+    
+    # Calculate the entropy using scipy's entropy function
+    layer_entropy = entropy(probabilities)
+    
+    return layer_entropy

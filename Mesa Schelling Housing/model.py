@@ -94,7 +94,8 @@ class Schelling(mesa.Model):
         property_value_weight=0.1,
         mu_theta = 0.4,
         sigma_theta = 0.6,
-        entropy = None, 
+        agent_entropy = None,
+        desirability_entropy = None, 
         seed=None
     ):
         """
@@ -122,7 +123,8 @@ class Schelling(mesa.Model):
         self.alpha = alpha
         self.mu_theta = mu_theta
         self.sigma_theta = sigma_theta
-        self.entropy = entropy
+        self.agent_entropy = agent_entropy
+        self.desirability_entropy = desirability_entropy
         
         #############
         self.compute_similar_neighbours = compute_similar_neighbours
@@ -202,27 +204,32 @@ class Schelling(mesa.Model):
             self.neighbor_similarity_counter[similar_neighbors] += 1
 
         # Compute total number of agents included
-        total_agents = sum(self.neighbor_similarity_counter.values())
+        total_agents = len(self.schedule.agents) #sum(self.neighbor_similarity_counter.values())
 
-        # Compute entropy and store it 
-        current_entopy = 0
+        # Compute agent entropy and store it 
+        current_agent_entopy = 0
         for _, p in self.neighbor_similarity_counter.items():
             if p > 0:  # To avoid domain error for log(0)
                 probability = p / total_agents
                 value = probability * np.log10(probability)
-                current_entopy += value
-        self.entropy = -current_entopy
+                current_agent_entopy += value
+        self.agent_entropy = -current_agent_entopy
         #############################
-
+        
         # Set desirability layer to the proportion of interested agents
-        num_agents = len(self.schedule.agents)
+        #num_agents = len(self.schedule.agents)
         self.desirability_layer.set_cells(
             self.desirability_func(self, prop_value_weight=self.prop_value_weight)
         )
         
+        ##### Compute entropy for desirability ###########
+        desirability_current_entropy = modules.compute_entropy(self)
+        self.desirability_entropy = desirability_current_entropy
+        ############################
+
         self.schedule.step()
         self.datacollector.collect(self)
-        print(self.datacollector)
+        
 
 # import modules
 # # Create and run the model
@@ -251,7 +258,7 @@ class Schelling(mesa.Model):
 # print(agent_data)
 
 ### ADDED ####
-"""import modules
+import modules
 # # Create and run the model
 model = Schelling(
      property_value_func=modules.property_value_quadrants,
@@ -273,4 +280,4 @@ model = Schelling(
 for i in range(5):
      print(i)
      #print(model.entropy)
-     model.step()"""
+     model.step()
