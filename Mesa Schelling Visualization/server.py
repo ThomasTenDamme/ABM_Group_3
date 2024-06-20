@@ -43,7 +43,7 @@ def schelling_draw(agent, value_io_desire=False, draw_agents=True):
         if prop_val < 0:
             color = "#FFFFFF"
         elif value_io_desire:
-            color = color_gradient(prop_val, 0, 2000)
+            color = color_gradient(prop_val, 0, 10000)
         else: 
             desirability = agent.model.desirability_layer.data[agent.pos]
             color = color_gradient(desirability, 0, 1)
@@ -53,7 +53,7 @@ def schelling_draw(agent, value_io_desire=False, draw_agents=True):
 
     # on layer 1, portray agents
     if draw_agents:
-        portrayal = {"Shape": "circle", "r": 0.5, "Filled": "true", "Layer": 1}
+        portrayal = {"Shape": "circle", "r": 0.6, "Filled": "true", "Layer": 1}
 
         if agent.type == 0:
             portrayal["Color"] = ["#FFFFFF", "#FFFFFF"]
@@ -72,16 +72,18 @@ def draw_other(agent):
 def whitespace(_):
     return ""
 
-width = 100
-height = 100
+width = 108
+height = 72
+
+canvas_scale = 10
 
 # grid of agents and desirability
 canvas_main = mesa.visualization.CanvasGrid(
     portrayal_method=draw_main,
     grid_width=width,
     grid_height=height,
-    canvas_width=500,
-    canvas_height=500,
+    canvas_width=canvas_scale * width,
+    canvas_height=canvas_scale * height,
 )
 
 # grid of just property value
@@ -89,8 +91,8 @@ canvas_other = mesa.visualization.CanvasGrid(
     portrayal_method=draw_other,
     grid_width=width,
     grid_height=height,
-    canvas_width=500,
-    canvas_height=500,
+    canvas_width=canvas_scale * width,
+    canvas_height=canvas_scale * height,
 )
 
 happy_chart = mesa.visualization.ChartModule([{"Label": "happy", "Color": "Black"}])
