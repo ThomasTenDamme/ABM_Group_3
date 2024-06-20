@@ -69,7 +69,7 @@ def property_value_from_gdf(name, width, height) -> mesa.space.PropertyLayer:
     # Load GeoDataFrame outside of loop for efficiency, assuming it's static
     dir_path = os.path.dirname(os.path.realpath(__file__))
     # print(f"PATH: {dir_path}")
-    gdf = gpd.read_file(f"{dir_path}/joined_gdf.geojson")
+    gdf = gpd.read_file(f"{dir_path}/joined_gdf_100.geojson")
     
     # Iterate over the cells in the PropertyLayer
     for i in range(height):
@@ -242,15 +242,16 @@ def calculate_gi_star(grid, values, x, y, d):
     return numerator / denominator if denominator != 0 else 0
 
 @njit
-def agent_to_interested_grid_utility(model, agent, grid_width, grid_height):
-    interested = np.zeros((grid_width, grid_height))
-    agent_utility = agent.utility
+def agent_to_interested_grid(inputs):
+    model = inputs[0]
+    agent = inputs[1]
+    grid = model.grid
     
-    for x in range(grid_width):
-        for y in range(grid_height):
-            # Inline the utility function or replace with a compatible one
-            util = utility_func(model, agent, (x, y), budgetless=False)
-            interested[x, y] = 1 if util > agent_utility else 0
+    interested = np.zeros((grid.width, grid.height))
+
+    for x in range(grid.width):
+        for y in range(grid.height):
+            interested[x, y] = 1 if model.utility_func(model, agent, (x, y), budgetless=False) > agent.utility else 0
     return interested
 
 def update_interested_agents_concurrently(model):
