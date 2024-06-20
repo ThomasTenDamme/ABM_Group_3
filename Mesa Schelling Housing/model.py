@@ -231,53 +231,32 @@ class Schelling(mesa.Model):
         self.datacollector.collect(self)
         
 
-# import modules
-# # Create and run the model
-# model = Schelling(
-    # property_value_func=modules.property_value_quadrants,
-    # utility_func=modules.utility_func,
-    # price_func=modules.price_func,
-    # height=20,
-    # width=20,
-    # radius=1,
-    # density=0.8,
-    # minority_pc=0.2,
-    # alpha=0.5,
-    # seed=42
-# )
-
-# # Run the model for a certain number of steps
-# for i in range(5):
-    # print(i)
-    # model.step()
-
-# # Retrieve the collected data
-# agent_data = model.datacollector.get_agent_vars_dataframe()
-# model_data = model.datacollector.get_model_vars_dataframe()
-
-# print(agent_data)
-
-### ADDED ####
 import modules
-# # Create and run the model
+# Create and run the model
 model = Schelling(
-     property_value_func=modules.property_value_quadrants,
-     income_func=modules.income_func,
-     desirability_func=modules.desirability_func,
-     utility_func=modules.utility_func,
-     price_func=modules.price_func,
-     compute_similar_neighbours=modules.compute_similar_neighbours,
-     height=20,
-     width=20,
-     radius=1,
-     density=0.8,
-     minority_pc=0.2,
-     alpha=0.5,
-     seed=42
- )
+    property_value_func=modules.property_value_quadrants,
+    utility_func=modules.utility_func,
+    price_func=modules.price_func,
+    income_func=modules.income_func,
+    desirability_func=modules.desirability_func,
+    compute_similar_neighbours=modules.compute_similar_neighbours,
+    height=20,
+    width=20,
+    radius=1,
+    density=0.8,
+    minority_pc=0.2,
+    alpha=0.5,
+    seed=42
+)
 
-# # Run the model for a certain number of steps
+# Run the model for a certain number of steps
 for i in range(5):
-     print(i)
-     #print(model.entropy)
-     model.step()
+    print(i)
+    model.step()
+
+# Retrieve the collected data
+agent_data = model.datacollector.get_agent_vars_dataframe()
+model_data = model.datacollector.get_model_vars_dataframe()
+
+print(agent_data)
+

@@ -6,6 +6,9 @@ import numpy as np
 from collections import Counter
 from scipy.stats import entropy
 ############
+import geopandas as gpd
+import mesa.space
+from shapely.geometry import Point
 
 NO_NEIGHBORS_THETA = 0.5
 
@@ -40,6 +43,32 @@ def property_value_quadrants(name, width, height) -> mesa.space.PropertyLayer:
                     rent = 2000
             layer.set_cell((i, j), abs(rent))
 
+    return layer
+
+
+def property_value_from_gdf(name, width, height, gdf) -> mesa.space.PropertyLayer:
+    # Create the PropertyLayer
+    layer = mesa.space.PropertyLayer(name, width, height, 0)
+    
+    # Iterate over the cells in the PropertyLayer
+    for i in range(height):
+        for j in range(width):
+            # Create a point for the current cell
+            point = Point(j, i)
+            
+            # Find the corresponding property in the GeoDataFrame
+            match = gdf[gdf.geometry.contains(point)]
+            
+            if not match.empty:
+                # Get the rent value from the GeoDataFrame
+                rent = match.iloc[0]['rent']
+            else:
+                # Default rent if no match is found
+                rent = 0
+
+            # Set the cell value in the PropertyLayer
+            layer.set_cell((i, j), abs(rent))
+    
     return layer
 
 def income_func(scale=1.5):

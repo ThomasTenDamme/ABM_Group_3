@@ -1,6 +1,6 @@
 import mesa
 from model import Schelling
-from modules import property_value_func_random, utility_func, price_func, income_func, property_value_quadrants, desirability_func, compute_similar_neighbours
+from modules import property_value_func_random, utility_func, price_func, income_func, property_value_from_gdf, desirability_func, compute_similar_neighbours
 
 
 def get_happy_agents(model):
@@ -69,8 +69,8 @@ def draw_other(agent):
 def whitespace(_):
     return ""
 
-width = 20
-height = 20
+width = 100
+height = 100
 
 # grid of agents and desirability
 canvas_main = mesa.visualization.CanvasGrid(
@@ -93,7 +93,7 @@ canvas_other = mesa.visualization.CanvasGrid(
 happy_chart = mesa.visualization.ChartModule([{"Label": "happy", "Color": "Black"}])
 
 model_params = {
-    "property_value_func": property_value_quadrants,
+    "property_value_func": property_value_from_gdf,
     "income_func": income_func,
     "utility_func": utility_func,
     "price_func": price_func,

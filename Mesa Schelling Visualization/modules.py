@@ -2,6 +2,12 @@ import mesa
 import mesa.agent
 import numpy as np
 
+import geopandas as gpd
+import mesa.space
+from shapely.geometry import Point
+from pyproj import Transformer
+import re
+
 
 NO_NEIGHBORS_THETA = 0.5
 
@@ -36,6 +42,52 @@ def property_value_quadrants(name, width, height) -> mesa.space.PropertyLayer:
                     rent = 2000
             layer.set_cell((i, j), abs(rent))
 
+    return layer
+
+
+def property_value_from_gdf(name, width, height) -> mesa.space.PropertyLayer:
+    # Create the PropertyLayer
+    layer = mesa.space.PropertyLayer(name, width, height, 0)
+    
+    # Load GeoDataFrame outside of loop for efficiency, assuming it's static
+    gdf = gpd.read_file("/Users/jennadevries/Documents/GitHub/ABM_Group_3/Mesa Schelling Visualization/joined_gdf.geojson")
+    
+    # Iterate over the cells in the PropertyLayer
+    for i in range(height):
+        for j in range(width):
+            # Create a point for the current cell
+            point = Point(j, i)
+            
+            # Find the corresponding property in the GeoDataFrame
+            match = gdf[gdf.geometry.contains(point)]
+            
+            if not match.empty:
+                # Get the price_range value from the GeoDataFrame
+                price_range = match.iloc[0]['price_range']
+                
+                # Extract numeric values from the price_range string
+                numeric_values = re.findall(r'\d+', price_range)
+                
+                # Convert the extracted values to integers
+                values = list(map(int, numeric_values))
+                
+                # Calculate the average or handle the logic based on your requirements
+                if len(values) == 1:
+                    average_value = values[0]
+                elif len(values) == 2:
+                    average_value = np.mean(values)
+                else:
+                    # Handle cases where there are more than 2 numeric values found
+                    average_value = 0  # or any other default value or handling logic
+                    
+                rent = average_value
+            else:
+                # Default rent if no match is found
+                rent = 0
+
+            # Set the cell value in the PropertyLayer
+            layer.set_cell((i, j), abs(rent))
+    
     return layer
 
 def income_func(scale=1.5):
