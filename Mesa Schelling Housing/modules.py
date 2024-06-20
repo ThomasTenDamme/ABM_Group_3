@@ -134,6 +134,22 @@ def price_func(model: mesa.Model, property_loc: tuple) -> float:
     
     return (0.5 + desirability) * property_value
 
+def price_func_cap(model: mesa.Model, property_loc: tuple, param:float) -> float:
+    desirability = model.desirability_layer.data[property_loc]
+    property_value = model.property_value_layer.data[property_loc]
+
+    initial_price = property_value
+
+    price= (0.5 + desirability) * property_value
+
+    price_cap = param * initial_price 
+    
+    if price > price_cap:
+        #print("price_cap applied")
+        return price_cap
+    
+    return price
+
 def get_theta(model: mesa.Model, loc: tuple, type):
     similar = 0
     num_neighbours = 0

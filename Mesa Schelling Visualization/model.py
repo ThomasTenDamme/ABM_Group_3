@@ -97,6 +97,8 @@ class Schelling(mesa.Model):
         ##########
         compute_similar_neighbours,
         calculate_gi_star,
+        price_func_cap,
+        policy_vienna=False,
         ##########
         height=20,
         width=20,
@@ -142,6 +144,11 @@ class Schelling(mesa.Model):
         ############
         self.agent_entropy = agent_entropy
         self.desirability_entropy = desirability_entropy
+        self.policy_vienna = policy_vienna
+        self.price_func_cap = price_func_cap
+        self.param_try = 1.2
+        if policy_vienna == True:
+           self.price_func = lambda model, loc: price_func_cap(model, loc, param = self.param_try)
         #############
         #############
         self.compute_similar_neighbours = compute_similar_neighbours
