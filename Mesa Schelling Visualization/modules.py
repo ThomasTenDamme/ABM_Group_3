@@ -7,6 +7,7 @@ import mesa.space
 from shapely.geometry import Point
 from pyproj import Transformer
 import re
+import os
 
 
 NO_NEIGHBORS_THETA = 0.5
@@ -50,7 +51,9 @@ def property_value_from_gdf(name, width, height) -> mesa.space.PropertyLayer:
     layer = mesa.space.PropertyLayer(name, width, height, 0)
     
     # Load GeoDataFrame outside of loop for efficiency, assuming it's static
-    gdf = gpd.read_file("ABM_Group_3/Mesa Schelling Visualization/joined_gdf.geojson")
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    # print(f"PATH: {dir_path}")
+    gdf = gpd.read_file(f"{dir_path}/joined_gdf.geojson")
     
     # Iterate over the cells in the PropertyLayer
     for i in range(height):
