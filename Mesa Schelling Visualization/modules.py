@@ -13,6 +13,7 @@ import concurrent.futures
 from pyproj import Transformer
 import re
 import os
+from numba import njit
 
 NO_NEIGHBORS_THETA = 0.5
 
@@ -240,16 +241,16 @@ def calculate_gi_star(grid, values, x, y, d):
 
     return numerator / denominator if denominator != 0 else 0
 
-def agent_to_interested_grid(inputs):
-    model = inputs[0]
-    agent = inputs[1]
-    grid = model.grid
+@njit
+def agent_to_interested_grid_utility(model, agent, grid_width, grid_height):
+    interested = np.zeros((grid_width, grid_height))
+    agent_utility = agent.utility
     
-    interested = np.zeros((grid.width, grid.height))
-
-    for x in range(grid.width):
-        for y in range(grid.height):
-            interested[x, y] = 1 if model.utility_func(model, agent, (x, y), budgetless=False) > agent.utility else 0
+    for x in range(grid_width):
+        for y in range(grid_height):
+            # Inline the utility function or replace with a compatible one
+            util = utility_func(model, agent, (x, y), budgetless=False)
+            interested[x, y] = 1 if util > agent_utility else 0
     return interested
 
 def update_interested_agents_concurrently(model):
