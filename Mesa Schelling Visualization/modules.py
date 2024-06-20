@@ -50,13 +50,13 @@ def property_value_from_gdf(name, width, height) -> mesa.space.PropertyLayer:
     layer = mesa.space.PropertyLayer(name, width, height, 0)
     
     # Load GeoDataFrame outside of loop for efficiency, assuming it's static
-    gdf = gpd.read_file("/Users/jennadevries/Documents/GitHub/ABM_Group_3/Mesa Schelling Visualization/joined_gdf.geojson")
+    gdf = gpd.read_file("ABM_Group_3/Mesa Schelling Visualization/joined_gdf.geojson")
     
     # Iterate over the cells in the PropertyLayer
     for i in range(height):
         for j in range(width):
             # Create a point for the current cell
-            point = Point(j, i)
+            point = Point(i, j)
             
             # Find the corresponding property in the GeoDataFrame
             match = gdf[gdf.geometry.contains(point)]
@@ -83,10 +83,10 @@ def property_value_from_gdf(name, width, height) -> mesa.space.PropertyLayer:
                 rent = average_value
             else:
                 # Default rent if no match is found
-                rent = 0
+                rent = -1
 
             # Set the cell value in the PropertyLayer
-            layer.set_cell((i, j), abs(rent))
+            layer.set_cell((i, j), rent)
     
     return layer
 

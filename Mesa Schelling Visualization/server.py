@@ -37,10 +37,13 @@ def schelling_draw(agent, value_io_desire=False, draw_agents=True):
     # on layer 0, portray property value which has agent type -1
     if agent.type == -1:
         portrayal = {"Shape": "rect", "w": 1, "h": 1, "Filled": "true", "Layer": 0}
-        
-        if value_io_desire:
-            property_value = agent.model.property_value_layer.data[agent.pos]
-            color = color_gradient(property_value, 0, 2000)
+
+        prop_val = agent.model.property_value_layer.data[agent.pos]
+
+        if prop_val < 0:
+            color = "#FFFFFF"
+        elif value_io_desire:
+            color = color_gradient(prop_val, 0, 2000)
         else: 
             desirability = agent.model.desirability_layer.data[agent.pos]
             color = color_gradient(desirability, 0, 1)

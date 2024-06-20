@@ -176,7 +176,8 @@ class Schelling(mesa.Model):
             # place property agent on each cell
             property_agent = Property(self.next_id(), self)
             self.grid.place_agent(property_agent, pos)
-            if self.random.random() < self.density:
+            # place agent if random number is less than density and property value is not negative
+            if self.random.random() < self.density and self.property_value_layer.data[pos] > 0:
                 agent_type = 1 if self.random.random() < self.minority_pc else 0
                 budget = income_func(scale=income_scale)
                 agent = SchellingAgent(self.next_id(), self, agent_type, budget)
@@ -188,10 +189,11 @@ class Schelling(mesa.Model):
     def find_available_cells(self, agent):
         available_cells = []
         for _, pos in self.grid.coord_iter():
-            # cell is available if it contains a property agent and no other agent
+            # cell is available if it contains a property agent and no other agent and rent is not negative
             agents = self.grid.get_cell_list_contents([pos])
             if len(agents) == 1 and isinstance(agents[0], Property):
-                available_cells.append(pos)
+                if self.property_value_layer.data[pos] > 0:
+                    available_cells.append(pos)
                 
         return available_cells
 
