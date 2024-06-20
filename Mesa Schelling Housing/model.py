@@ -1,4 +1,4 @@
-import mesa
+import mesa, time
 import numpy as np
 import mesa
 import random
@@ -24,13 +24,13 @@ class SchellingAgent(mesa.Agent):
         super().__init__(unique_id, model)
         self.type = agent_type
         self.budget = budget
-        self.utility = 0.5
+        self.utility = 0.1
         self.segregation = None
         self.move_counter = 0
 
     def calc_theta(self):
         # Calculate theta using the model's get_theta method
-        self.segregation = modules.get_theta(self.model, self.pos, self.type)
+        _, self.segregation = modules.get_theta(self.model, self.pos, self.type)
 
     def step(self):
         """
@@ -67,6 +67,7 @@ class SchellingAgent(mesa.Agent):
             # update utility
             self.utility = move_util[0][1]
             self.move_counter += 1
+            self.model.recent_moves[-1] += 1
 
 
 class Schelling(mesa.Model):
@@ -78,11 +79,13 @@ class Schelling(mesa.Model):
         self,
         property_value_func,
         income_func,
+        update_interested_agents_func,
         desirability_func,
         utility_func,
         price_func,
         ##########
         compute_similar_neighbours,
+        calculate_gi_star,
         ##########
         height=20,
         width=20,
@@ -114,6 +117,8 @@ class Schelling(mesa.Model):
         self.utility_func = utility_func
         self.price_func = price_func
         self.desirability_func = desirability_func
+        self.concurrent = False
+        self.update_interested_agents_func = update_interested_agents_func
         self.prop_value_weight = property_value_weight
         self.height = height
         self.width = width
@@ -123,13 +128,15 @@ class Schelling(mesa.Model):
         self.alpha = alpha
         self.mu_theta = mu_theta
         self.sigma_theta = sigma_theta
+        ############
         self.agent_entropy = agent_entropy
         self.desirability_entropy = desirability_entropy
-        
+        #############
         #############
         self.compute_similar_neighbours = compute_similar_neighbours
         self.neighbor_similarity_counter = {}
         #############
+        self.calculate_gi_star = calculate_gi_star
 
         self.schedule = mesa.time.RandomActivation(self)
         self.grid = mesa.space.SingleGrid(width, height, torus=True)
@@ -154,9 +161,23 @@ class Schelling(mesa.Model):
         self.utility_layer = mesa.space.PropertyLayer("utility", width, height, 0.5) 
         self.grid.add_property_layer(self.utility_layer)
 
+        ##############
+        #self.datacollector_attempt = mesa.DataCollector(
+        #    model_reporters={"Desirability entropy": "desirability_entropy", "Agent entropy": "agent_entropy"}
+        #)
+        ##############
+
         #Data Collectors
         self.datacollector = mesa.DataCollector(
-            agent_reporters={"Utility": "utility", "Segregation":"segregation", "Moves":"move_counter"}, model_reporters={"Desirability": self.desirability_layer.data.tolist}  # Collect the utility of each agent
+            agent_reporters={"Utility": "utility", 
+                             "Segregation":"segregation", 
+                             "Moves":"move_counter"}, 
+            model_reporters={"Desirability entropy": "desirability_entropy", 
+                             "Agent entropy": "agent_entropy", 
+                             "Desirability": self.desirability_layer.data.tolist,
+                             "Average Utility": self.get_average_util,
+                             "Minority Average Utility" : self.minority_average_util,
+                             "Majority Average Utility" : self.majority_average_util}  # Collect the utility of each agent
         )
 
         # Set up agents
@@ -169,7 +190,33 @@ class Schelling(mesa.Model):
                 self.schedule.add(agent)
 
         self.datacollector.collect(self)
+        
+        self.timings = {
+            "Updating Desirability" : [],
+            "Updating Entropies" : [],
+            "Agent Step" : [],
+            "Data Collection" : []
+        }
+        
+        self.recent_moves = [10]*5
 
+    def get_average_util(self):
+        if len(self.schedule.agents) == 0:
+            return 0
+        return sum([a.utility for a in self.schedule.agents]) / len(self.schedule.agents)
+    
+    def minority_average_util(self):
+        minority_agents = [a for a in self.schedule.agents if a.type == 1]
+        if len(minority_agents) == 0:
+            return 0
+        return sum([a.utility for a in minority_agents]) / len(minority_agents)
+    
+    def majority_average_util(self):
+        majority_agents = [a for a in self.schedule.agents if a.type == 0]
+        if len(majority_agents) == 0:
+            return 0
+        return sum([a.utility for a in majority_agents]) / len(majority_agents)
+    
     def find_available_cells(self, agent):
         available_cells = []
         for _, pos in self.grid.coord_iter():
@@ -177,35 +224,66 @@ class Schelling(mesa.Model):
                 available_cells.append(pos)        
         return available_cells
 
+    ###### ADDED ############# 19/06
+    def calculate_hotspots(self, distance_threshold):
+        desirability = self.desirability_layer.data
+        values = {(i, j): desirability[i][j] for i in range(self.width) for j in range(self.height)}
+        gi_star_values = np.zeros((self.width, self.height))
+
+        for x in range(self.width):
+            for y in range(self.height):
+                gi_star_values[x, y] = self.calculate_gi_star(self.grid, values, x, y, distance_threshold)
+
+        return gi_star_values
+    
+    ##################
+
     def step(self):
         """
         Run one step of the model.
         """
+        self.recent_moves.pop(0)
+        self.recent_moves.append(0)
+        
+        t = time.time()
         # Set the count of agents who like to move somewhere to 0 for all cells
         self.interested_agents_layer.set_cells(0)
 
         ########
         self.neighbor_similarity_counter.clear()
         ########
-
+        
+        # New concurrent function to update interested agents
+        if self.concurrent:
+            self.update_interested_agents_func(self)
+        
         for agent in self.schedule.agents:
-            # Iterate over cells and compare utility to current location, add to interested_agents_layer if better
-            for _, loc  in self.grid.coord_iter():
-                utility = self.utility_func(self, agent, loc)
-                
-                if utility > agent.utility:
-                    self.interested_agents_layer.modify_cell(loc, lambda v: v + 1)
+            if not self.concurrent:
+                # Iterate over cells and compare utility to current location, add to interested_agents_layer if better
+                for _, loc  in self.grid.coord_iter():
+                    utility = self.utility_func(self, agent, loc, budgetless=False)
+                    
+                    if utility > agent.utility:
+                        self.interested_agents_layer.modify_cell(loc, lambda v: v + 1)
 
-        ###### ADDED #############
+            ###### ADDED #############
             # Compute number of agents with the same number of similar neighbours 
             similar_neighbors = self.compute_similar_neighbours(self, agent)
             if similar_neighbors not in self.neighbor_similarity_counter:
                 self.neighbor_similarity_counter[similar_neighbors] = 0
             self.neighbor_similarity_counter[similar_neighbors] += 1
 
+        # Set desirability layer to the proportion of interested agents
+        self.desirability_layer.set_cells(
+            self.desirability_func(self, prop_value_weight=self.prop_value_weight)
+        )
+
+        self.timings["Updating Desirability"].append(time.time() - t)
+        t = time.time()
+        
         # Compute total number of agents included
         total_agents = len(self.schedule.agents) #sum(self.neighbor_similarity_counter.values())
-
+        
         # Compute agent entropy and store it 
         current_agent_entopy = 0
         for _, p in self.neighbor_similarity_counter.items():
@@ -216,47 +294,37 @@ class Schelling(mesa.Model):
         self.agent_entropy = -current_agent_entopy
         #############################
         
-        # Set desirability layer to the proportion of interested agents
-        #num_agents = len(self.schedule.agents)
-        self.desirability_layer.set_cells(
-            self.desirability_func(self, prop_value_weight=self.prop_value_weight)
-        )
-        
+        #save hotspot data for every 10 steps in order to make plots
+        #if self.schedule.steps % 10 == 0:
+         #   distance_threshold = 3
+          #  gi_star_values = self.calculate_hotspots(distance_threshold)
+           # self.gi_star_history.append((self.schedule.steps, gi_star_values))
+
         ##### Compute entropy for desirability ###########
         desirability_current_entropy = modules.compute_entropy(self)
         self.desirability_entropy = desirability_current_entropy
+
+        self.timings["Updating Entropies"].append(time.time() - t)
+        t = time.time()
+        # add it to entropy layer for desirability
+
         ############################
 
         self.schedule.step()
+
+        self.timings["Agent Step"].append(time.time() - t)
+        t = time.time()
+        
         self.datacollector.collect(self)
         
+        self.timings["Data Collection"].append(time.time() - t)
 
-import modules
-# Create and run the model
-model = Schelling(
-    property_value_func=modules.property_value_quadrants,
-    utility_func=modules.utility_func,
-    price_func=modules.price_func,
-    income_func=modules.income_func,
-    desirability_func=modules.desirability_func,
-    compute_similar_neighbours=modules.compute_similar_neighbours,
-    height=20,
-    width=20,
-    radius=1,
-    density=0.8,
-    minority_pc=0.2,
-    alpha=0.5,
-    seed=42
-)
+        print([f"{k}: {sum(v) / len(v):.2f}s" for k, v in self.timings.items()])
 
-# Run the model for a certain number of steps
-for i in range(5):
-    print(i)
-    model.step()
+        if sum(self.recent_moves) == 0:
+            # print("No moves made last few steps, stopping")
+            self.running = False
 
-# Retrieve the collected data
-agent_data = model.datacollector.get_agent_vars_dataframe()
-model_data = model.datacollector.get_model_vars_dataframe()
-
-print(agent_data)
-
+        ###################
+        #self.datacollector_attempt.collect(self)
+        ###################

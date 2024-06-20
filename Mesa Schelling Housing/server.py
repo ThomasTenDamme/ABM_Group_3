@@ -1,13 +1,13 @@
 import mesa
 from model import Schelling
-from modules import property_value_func_random, utility_func, price_func, income_func, property_value_quadrants, desirability_func, compute_similar_neighbours
+from modules import update_interested_agents_concurrently, property_value_func_random, utility_func, price_func, income_func, property_value_quadrants, desirability_func, compute_similar_neighbours, property_value_equal, calculate_gi_star
 
 
-def get_happy_agents(model):
+def get_average_utility(model):
     """
-    Display a text count of how many happy agents there are.
+    Display a text count of the average utility.
     """
-    return f"Happy agents: {1}"
+    return f"Average Utility: {sum([agent.utility for agent in model.schedule.agents])/len(model.schedule.agents)}"
 
 
 def schelling_draw(agent):
@@ -36,16 +36,21 @@ canvas_element = mesa.visualization.CanvasGrid(
     canvas_width=500,
     canvas_height=500,
 )
-happy_chart = mesa.visualization.ChartModule([{"Label": "happy", "Color": "Black"}])
+utility_chart = mesa.visualization.ChartModule([
+    {"Label": "Average Utility", "Color": "Black"},
+    {"Label": "Minority Average Utility", "Color": "Blue"},
+    {"Label": "Majority Average Utility", "Color": "Red"}])
 
 model_params = {
     "property_value_func": property_value_quadrants,
     "income_func": income_func,
     "utility_func": utility_func,
     "price_func": price_func,
+    "update_interested_agents_func" : update_interested_agents_concurrently,
     "desirability_func": desirability_func,
     ####
     "compute_similar_neighbours": compute_similar_neighbours,
+    "calculate_gi_star": calculate_gi_star,
     ####
     "height": height,
     "width": width,
@@ -70,6 +75,12 @@ model_params = {
     "property_value_weight": mesa.visualization.Slider(
         name="Property Value Weight", value=0.1, min_value=0, max_value=1, step=0.05
     ),
+    "mu_theta": mesa.visualization.Slider(
+        name="Mu Theta", value=0.7, min_value=0, max_value=1, step=0.05
+    ),
+    "sigma_theta": mesa.visualization.Slider(
+        name="Sigma Theta", value=0.3, min_value=0, max_value=1, step=0.05
+    ),
         
     
     # TODO - add all sliders
@@ -77,8 +88,8 @@ model_params = {
 
 server = mesa.visualization.ModularServer(
     model_cls=Schelling,
-    visualization_elements=[canvas_element, get_happy_agents, happy_chart],
-    name="Schelling Segregation Model",
+    visualization_elements=[canvas_element, get_average_utility, utility_chart],
+    name="Schelling Segregation Model with Housing Market",
     model_params=model_params,
 )
 

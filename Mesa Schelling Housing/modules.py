@@ -6,9 +6,13 @@ import numpy as np
 from collections import Counter
 from scipy.stats import entropy
 ############
+<<<<<<< HEAD
 import geopandas as gpd
 import mesa.space
 from shapely.geometry import Point
+=======
+import concurrent.futures
+>>>>>>> f418ec9f33b0bf49c146b089a799ad9582f843d5
 
 NO_NEIGHBORS_THETA = 0.5
 
@@ -22,6 +26,17 @@ def property_value_func_random(name, width, height) -> mesa.space.PropertyLayer:
     for i in range(height):
         for j in range(width):
             rent = np.random.gumbel(loc=mu, scale=beta)
+            layer.set_cell((i, j), abs(rent))
+
+    return layer
+
+def property_value_equal(name, width, height) -> mesa.space.PropertyLayer:
+    layer = mesa.space.PropertyLayer(name, width, height, 0)
+    
+    for i in range(height):
+        for j in range(width):
+            rent = 1
+
             layer.set_cell((i, j), abs(rent))
 
     return layer
@@ -98,10 +113,8 @@ def desirability_func(model: mesa.Model, prop_value_weight: float = 0.1) -> floa
     
     return prop_value_weight * model.property_value_layer.data / most_expensive_prop + (1-prop_value_weight) * model.interested_agents_layer.data / num_agents
 
-def utility_func(model: mesa.Model, agent: mesa.Agent, property_loc: tuple) -> float:
-    # agent_loc = agent.pos
-    
-    theta = get_theta(model, property_loc, agent.type)
+def utility_func(model: mesa.Model, agent: mesa.Agent, property_loc: tuple, budgetless = False) -> float:
+    theta, _ = get_theta(model, property_loc, agent.type)
 
     desirability = model.desirability_layer.data[property_loc]
 
@@ -111,9 +124,9 @@ def utility_func(model: mesa.Model, agent: mesa.Agent, property_loc: tuple) -> f
     
     price = model.price_func(model, property_loc)
     
-    if budget < price:
+    if budget < price and not budgetless:
         return 0
-    
+
     return theta**alpha*desirability**(1-alpha)
 
 
@@ -137,13 +150,13 @@ def get_theta(model: mesa.Model, loc: tuple, type):
             similar += 1
     
     if num_neighbours == 0:
-        return NO_NEIGHBORS_THETA
+        return NO_NEIGHBORS_THETA, NO_NEIGHBORS_THETA
        
     proportion_similar = similar / num_neighbours
 
     theta = np.exp(-((proportion_similar - model.mu_theta) ** 2) / (2 * model.sigma_theta ** 2))
     
-    return theta # proportion_similar
+    return theta, proportion_similar
     #return proportion_similar
 
 
@@ -182,3 +195,48 @@ def compute_entropy(model: mesa.model):
     layer_entropy = entropy(probabilities)
     
     return layer_entropy
+
+def calculate_gi_star(grid, values, x, y, d):
+    sum_wx = 0
+    sum_w = 0
+    sum_wx2 = 0
+    n = len(values)
+
+    for (i, j), value in values.items():
+        dist = np.sqrt((x - i)**2 + (y - j)**2)
+        if dist <= d:
+            w = 1  # Binary weight, 1 if within distance threshold
+            sum_wx += w * value
+            sum_w += w
+            sum_wx2 += w * value**2
+
+    mean_x = np.mean(list(values.values()))
+    s = np.std(list(values.values()))
+
+    numerator = sum_wx - mean_x * sum_w
+    denominator = s * np.sqrt((n * sum_w - sum_w**2) / (n - 1))
+
+    return numerator / denominator if denominator != 0 else 0
+
+def agent_to_interested_grid(inputs):
+    model = inputs[0]
+    agent = inputs[1]
+    grid = model.grid
+    
+    interested = np.zeros((grid.width, grid.height))
+
+    for x in range(grid.width):
+        for y in range(grid.height):
+            interested[x, y] = 1 if model.utility_func(model, agent, (x, y), budgetless=False) > agent.utility else 0
+    return interested
+
+def update_interested_agents_concurrently(model):
+    agents = model.schedule.agents
+    
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        inputs = [(model, agent) for agent in agents]
+        interested_agents = executor.map(agent_to_interested_grid, inputs)
+    
+        interested_agents = np.sum(list(interested_agents), axis=0)
+        model.interested_agents_layer.data = interested_agents
+    
