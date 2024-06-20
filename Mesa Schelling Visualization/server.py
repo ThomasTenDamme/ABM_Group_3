@@ -40,7 +40,7 @@ def schelling_draw(agent, value_io_desire=False, draw_agents=True):
         
         if value_io_desire:
             property_value = agent.model.property_value_layer.data[agent.pos]
-            color = color_gradient(property_value, 0, 2000)
+            color = color_gradient(property_value, 0, 12000)
         else: 
             desirability = agent.model.desirability_layer.data[agent.pos]
             color = color_gradient(desirability, 0, 1)
@@ -69,8 +69,8 @@ def draw_other(agent):
 def whitespace(_):
     return ""
 
-width = 100
-height = 100
+width = 20
+height = 20
 
 # grid of agents and desirability
 canvas_main = mesa.visualization.CanvasGrid(

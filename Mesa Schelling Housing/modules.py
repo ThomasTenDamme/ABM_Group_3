@@ -6,13 +6,10 @@ import numpy as np
 from collections import Counter
 from scipy.stats import entropy
 ############
-<<<<<<< HEAD
+import concurrent.futures
 import geopandas as gpd
 import mesa.space
 from shapely.geometry import Point
-=======
-import concurrent.futures
->>>>>>> f418ec9f33b0bf49c146b089a799ad9582f843d5
 
 NO_NEIGHBORS_THETA = 0.5
 
