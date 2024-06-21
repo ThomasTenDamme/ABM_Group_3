@@ -22,7 +22,7 @@ def color_gradient(value, min_val, max_val):
     value = (value - min_val) / (max_val - min_val)
     # interpolate between magenta and green
     r = int(255 * value)
-    g = 0
+    g = int(255 * (1 - value))
     b = int(255 * (1 - value))
     return "#{:02x}{:02x}{:02x}".format(r, g, b)
 
