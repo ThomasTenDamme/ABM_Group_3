@@ -9,6 +9,11 @@ def get_average_utility(model):
     """
     return f"Average Utility: {sum([agent.utility for agent in model.schedule.agents])/len(model.schedule.agents)}"
 
+def get_entropy(model):
+    """
+    Display a text count of the average utility.
+    """
+    return f"Entropy: {model.agent_entropy}"
 
 def color_gradient(value, min_val, max_val):
     """
@@ -103,6 +108,9 @@ utility_chart = mesa.visualization.ChartModule([
     {"Label": "Minority Average Utility", "Color": "Blue"},
     {"Label": "Majority Average Utility", "Color": "Red"}])
 
+entropy_chart = mesa.visualization.ChartModule([
+    {"Label": "Agent entropy", "Color": "Black"}])
+
 model_params = {
     "property_value_func": property_value_from_gdf,
     "income_func": income_func,
@@ -157,7 +165,9 @@ server = mesa.visualization.ModularServer(
         whitespace,
         canvas_other, 
         get_average_utility, 
-        utility_chart
+        utility_chart,
+        get_entropy,
+        entropy_chart
     ],
     name="Schelling Segregation Model with Housing Market",
     model_params=model_params,
