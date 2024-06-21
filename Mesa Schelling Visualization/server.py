@@ -75,10 +75,10 @@ def draw_other(agent):
 def whitespace(_):
     return ""
 
-width = 108
-height = 72
+width = 50
+height = 33
 
-canvas_scale = 10
+canvas_scale = 15
 
 # grid of agents and desirability
 canvas_main = mesa.visualization.CanvasGrid(

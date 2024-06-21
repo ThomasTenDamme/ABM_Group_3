@@ -69,7 +69,7 @@ def property_value_from_gdf(name, width, height) -> mesa.space.PropertyLayer:
     # Load GeoDataFrame outside of loop for efficiency, assuming it's static
     dir_path = os.path.dirname(os.path.realpath(__file__))
     # print(f"PATH: {dir_path}")
-    gdf = gpd.read_file(f"{dir_path}/joined_gdf_100.geojson")
+    gdf = gpd.read_file(f"{dir_path}/joined_gdf_50.geojson")
     
     # Iterate over the cells in the PropertyLayer
     for i in range(height):
