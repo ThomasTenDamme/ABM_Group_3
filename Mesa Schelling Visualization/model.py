@@ -73,7 +73,7 @@ class SchellingAgent(mesa.Agent):
         move_util.sort(key=lambda x: x[1], reverse=True)
         
         # move if utility is higher than current
-        if move_util[0][1] > self.utility:
+        if len(move_util) > 0 and move_util[0][1] > self.utility:
             self.model.grid.move_agent(self, move_util[0][0])
             # update utility
             self.utility = move_util[0][1]
@@ -99,6 +99,9 @@ class Schelling(mesa.Model):
         calculate_gi_star,
         price_func_cap,
         policy_vienna=False,
+        policy_singapore=False,
+        policy_singapore_neighborhood_size = 2,
+        policy_singapore_threshold = 0.95,
         ##########
         height=20,
         width=20,
@@ -145,6 +148,9 @@ class Schelling(mesa.Model):
         self.agent_entropy = agent_entropy
         self.desirability_entropy = desirability_entropy
         self.policy_vienna = policy_vienna
+        self.policy_singapore = policy_singapore
+        self.policy_singapore_neighborhood_size = policy_singapore_neighborhood_size
+        self.policy_singapore_threshold = policy_singapore_threshold
         self.price_func_cap = price_func_cap
         self.param_try = 1.2
         if policy_vienna == True:
@@ -243,10 +249,28 @@ class Schelling(mesa.Model):
         for _, pos in self.grid.coord_iter():
             # cell is available if it contains a property agent and no other agent and rent is not negative
             agents = self.grid.get_cell_list_contents([pos])
-            if len(agents) == 1 and isinstance(agents[0], Property):
+
+            num_neighbours = 0
+            num_same = 0
+            ratio = 0
+            if self.policy_singapore:
+                for neighbor in self.grid.iter_neighbors(
+                    pos, moore=True, radius=self.policy_singapore_neighborhood_size
+                ):
+                    if hasattr(neighbor, "type"):
+                        if neighbor.type == agent.type:
+                            num_same += 1
+                            num_neighbours += 1
+                        elif neighbor.type != -1:
+                            num_neighbours += 1
+                        
+                    if num_neighbours != 0:
+                        ratio = num_same / num_neighbours
+
+            if len(agents) == 1 and isinstance(agents[0], Property) and ratio < self.policy_singapore_threshold:
                 if self.property_value_layer.data[pos] > 0:
                     available_cells.append(pos)
-                
+            
         return available_cells
 
     ###### ADDED ############# 19/06

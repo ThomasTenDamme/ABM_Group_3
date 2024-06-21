@@ -1,6 +1,6 @@
 import mesa
 from model import Schelling
-from modules import update_interested_agents_concurrently, property_value_func_random, utility_func, price_func, income_func, property_value_from_gdf, property_value_quadrants, desirability_func, compute_similar_neighbours, property_value_equal, calculate_gi_star
+from modules import update_interested_agents_concurrently, property_value_func_random, utility_func, price_func, income_func, property_value_from_gdf, property_value_quadrants, desirability_func, compute_similar_neighbours, property_value_equal, calculate_gi_star, price_func_cap
 
 
 def get_average_utility(model):
@@ -113,6 +113,8 @@ model_params = {
     ####
     "compute_similar_neighbours": compute_similar_neighbours,
     "calculate_gi_star": calculate_gi_star,
+    "price_func_cap": price_func_cap,
+    "policy_singapore" : False,
     ####
     "height": height,
     "width": width,
