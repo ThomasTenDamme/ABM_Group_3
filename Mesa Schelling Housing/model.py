@@ -299,6 +299,7 @@ class Schelling(mesa.Model):
                 value = probability * np.log10(probability)
                 current_agent_entopy += value
         self.agent_entropy = -current_agent_entopy
+        
         #############################
         
         #save hotspot data for every 10 steps in order to make plots
@@ -326,7 +327,7 @@ class Schelling(mesa.Model):
         
         self.timings["Data Collection"].append(time.time() - t)
 
-        print([f"{k}: {sum(v) / len(v):.2f}s" for k, v in self.timings.items()])
+        #print([f"{k}: {sum(v) / len(v):.2f}s" for k, v in self.timings.items()])
 
         if sum(self.recent_moves) == 0:
             # print("No moves made last few steps, stopping")
