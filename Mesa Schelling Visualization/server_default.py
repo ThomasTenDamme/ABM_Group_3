@@ -1,14 +1,14 @@
 import mesa
 from model import Schelling
-from modules import property_value_from_gdf, update_interested_agents_concurrently, property_value_func_random, utility_func, price_func, income_func, property_value_from_gdf, property_value_quadrants, desirability_func, compute_similar_neighbours, property_value_equal, calculate_gi_star, price_func_cap
+from modules import update_interested_agents_concurrently, property_value_func_random, utility_func, price_func, income_func, property_value_from_gdf, property_value_quadrants, desirability_func, compute_similar_neighbours, property_value_equal, calculate_gi_star, price_func_cap
 
 
 def get_average_utility(model):
     """
     Display a text count of the average utility.
     """
-    return f"Average Utility: {sum([agent.utility for agent in model.schedule.agents])/len(model.schedule.agents)}"
-
+    print(f"Agents: {len(model.schedule.agents)}")
+    # return f"Average Utility: {sum([agent.utility for agent in model.schedule.agents])/len(model.schedule.agents)}"
 
 def color_gradient(value, min_val, max_val):
     """
@@ -25,7 +25,6 @@ def color_gradient(value, min_val, max_val):
     g = 0
     b = int(255 * (1 - value))
     return "#{:02x}{:02x}{:02x}".format(r, g, b)
-
 
 def schelling_draw(agent, value_io_desire=False, draw_agents=True):
     """
@@ -65,7 +64,6 @@ def schelling_draw(agent, value_io_desire=False, draw_agents=True):
             portrayal["stroke_color"] = "#FFFFFF"
         return portrayal
 
-
 def draw_main(agent):
     return schelling_draw(agent, value_io_desire=False, draw_agents=True)
 
@@ -75,27 +73,16 @@ def draw_other(agent):
 def whitespace(_):
     return ""
 
-width = 50
-height = 33
-
-canvas_scale = 15
+width = 20
+height = 20
 
 # grid of agents and desirability
 canvas_main = mesa.visualization.CanvasGrid(
     portrayal_method=draw_main,
     grid_width=width,
     grid_height=height,
-    canvas_width=canvas_scale * width,
-    canvas_height=canvas_scale * height,
-)
-
-# grid of just property value
-canvas_other = mesa.visualization.CanvasGrid(
-    portrayal_method=draw_other,
-    grid_width=width,
-    grid_height=height,
-    canvas_width=canvas_scale * width,
-    canvas_height=canvas_scale * height,
+    canvas_width=500,
+    canvas_height=500
 )
 
 utility_chart = mesa.visualization.ChartModule([
@@ -104,7 +91,7 @@ utility_chart = mesa.visualization.ChartModule([
     {"Label": "Majority Average Utility", "Color": "Red"}])
 
 model_params = {
-    "property_value_func": property_value_from_gdf,
+    "property_value_func": property_value_quadrants,
     "income_func": income_func,
     "utility_func": utility_func,
     "price_func": price_func,
@@ -154,11 +141,11 @@ server = mesa.visualization.ModularServer(
     model_cls=Schelling,
     visualization_elements=[
         canvas_main,
-        whitespace,
-        canvas_other, 
+        whitespace, 
         get_average_utility, 
         utility_chart
     ],
     name="Schelling Segregation Model with Housing Market",
     model_params=model_params,
 )
+

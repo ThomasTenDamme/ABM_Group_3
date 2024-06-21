@@ -166,7 +166,7 @@ class Schelling(mesa.Model):
         self.grid = mesa.space.MultiGrid(width, height, torus=True)
 
         # Property Value Layer
-        self.property_value_layer = modules.property_value_from_gdf(name="property_values", width=width, height=height)
+        self.property_value_layer = property_value_func(name="property_values", width=width, height=height)
         self.grid.add_property_layer(self.property_value_layer)
 
         # Desirability Layer
@@ -215,7 +215,7 @@ class Schelling(mesa.Model):
                 agent = SchellingAgent(self.next_id(), self, agent_type, budget)
                 self.grid.place_agent(agent, pos)
                 self.schedule.add(agent)
-
+        
         self.datacollector.collect(self)
         
         self.timings = {

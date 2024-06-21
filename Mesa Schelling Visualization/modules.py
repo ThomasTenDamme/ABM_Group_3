@@ -79,7 +79,7 @@ def property_value_from_gdf(name, width, height) -> mesa.space.PropertyLayer:
             
             # Find the corresponding property in the GeoDataFrame
             match = gdf[gdf.geometry.contains(point)]
-            
+
             if not match.empty:
                 # Get the price_range value from the GeoDataFrame
                 price_range = match.iloc[0]['price_range']
