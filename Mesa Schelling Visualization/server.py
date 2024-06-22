@@ -13,7 +13,7 @@ def get_entropy(model):
     """
     Display a text count of the average utility.
     """
-    return f"Entropy: {model.agent_entropy}"
+    return f"Agent entropy: {model.agent_entropy}"
 
 def color_gradient(value, min_val, max_val):
     """
