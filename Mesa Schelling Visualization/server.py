@@ -49,11 +49,15 @@ def schelling_draw(agent, value_io_desire=False, draw_agents=True):
 
         if prop_val < 0:
             color = "#FFFFFF"
-        elif value_io_desire:
-            color = color_gradient(prop_val, 0, 1000)
         else: 
             desirability = agent.model.desirability_layer.data[agent.pos]
-            color = color_gradient(desirability, 0, 1)
+            
+            if value_io_desire:
+                price = (0.5 + desirability) * prop_val
+                color = color_gradient(price, 0, 1800)
+            else: 
+                color = color_gradient(desirability, 0, 1)
+
         portrayal["Color"] = [color, color]
 
         return portrayal

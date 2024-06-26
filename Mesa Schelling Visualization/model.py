@@ -323,11 +323,12 @@ class Schelling(mesa.Model):
             self.neighbor_similarity_counter[similar_neighbors] += 1
 
         # Set desirability layer to the proportion of interested agents
-        self.desirability_layer.set_cells(
-            self.desirability_func(self, prop_value_weight=self.prop_value_weight)
-        )
+        if self.schedule.steps > 0: # only after 1 step has passed
+            self.desirability_layer.set_cells(
+                self.desirability_func(self, prop_value_weight=self.prop_value_weight)
+            )
 
-        self.timings["Updating Desirability"].append(time.time() - t)
+            self.timings["Updating Desirability"].append(time.time() - t)
         t = time.time()
         
         # Compute total number of agents included
