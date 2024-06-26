@@ -35,7 +35,7 @@ class SchellingAgent(mesa.Agent):
         super().__init__(unique_id, model)
         self.type = agent_type
         self.budget = budget
-        self.utility = 0.1
+        self.utility = 0
         self.segregation = None
         self.move_counter = 0
 
@@ -110,7 +110,7 @@ class Schelling(mesa.Model):
         minority_pc=0.2,
         alpha=0.5,
         income_scale=1.5, # the scale by which the income is higher than the property value
-        property_value_weight=0.1,
+        property_value_weight=0.35,
         mu_theta = 0.4,
         sigma_theta = 0.6,
         agent_entropy = None,
