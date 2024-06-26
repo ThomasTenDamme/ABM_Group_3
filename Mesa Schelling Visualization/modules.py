@@ -105,7 +105,7 @@ def property_value_from_gdf(name, width, height) -> mesa.space.PropertyLayer:
                 rent = -1
 
             # Set the cell value in the PropertyLayer
-            layer.set_cell((j, i), rent/8)
+            layer.set_cell((j, i), rent/5)
     
     return layer
 

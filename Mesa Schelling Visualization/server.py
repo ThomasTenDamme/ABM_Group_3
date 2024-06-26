@@ -51,13 +51,12 @@ def schelling_draw(agent, value_io_desire=False, draw_agents=True):
             color = "#FFFFFF"
         else: 
             desirability = agent.model.desirability_layer.data[agent.pos]
-            
+
             if value_io_desire:
                 price = (0.5 + desirability) * prop_val
-                color = color_gradient(price, 0, 1800)
+                color = color_gradient(price, 0, 2800)
             else: 
                 color = color_gradient(desirability, 0, 1)
-
         portrayal["Color"] = [color, color]
 
         return portrayal
@@ -68,18 +67,23 @@ def schelling_draw(agent, value_io_desire=False, draw_agents=True):
 
         income = agent.budget
         
-        scaled_income = min(max((income) / (4000), 0.25), 0.85)
+        # scale to income
+        scaler = min(max((income) / (4000), 0.25), 0.85)
 
         # print(income, scaled_income)
+
+        price = (0.5 + agent.model.desirability_layer.data[agent.pos]) * agent.model.property_value_layer.data[agent.pos]
+
+        portrayal["value"] = f"Utility = {agent.utility:.2f}\nBudget = {income:.2f}\nPrice = {price:.2f}"
 
         if agent.type == 0:
             portrayal["Color"] = ["#FFFFFF", "#FFFFFF"]
             portrayal["stroke_color"] = "#000000"
-            portrayal["r"] = scaled_income
+            portrayal["r"] = scaler
         else:
             portrayal["Color"] = ["#000000", "#000000"]
             portrayal["stroke_color"] = "#FFFFFF"
-            portrayal["r"] = scaled_income
+            portrayal["r"] = scaler
         return portrayal
 
 
