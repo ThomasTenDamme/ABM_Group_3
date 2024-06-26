@@ -105,13 +105,13 @@ def property_value_from_gdf(name, width, height) -> mesa.space.PropertyLayer:
                 rent = -1
 
             # Set the cell value in the PropertyLayer
-            layer.set_cell((j, i), rent)
+            layer.set_cell((j, i), rent/10)
     
     return layer
 
 def income_func(scale=1.5):
     # Use the same gumbel distribution as the property value, but scale with scale value
-    return np.random.gumbel(loc=400, scale=1200) * scale
+    return np.abs(np.random.gumbel(loc=1200, scale=400) * scale)
 
 # def utility_func(model: mesa.Model, agent: mesa.Agent, property_loc: tuple) -> float:
 #     # agent_loc = agent.pos

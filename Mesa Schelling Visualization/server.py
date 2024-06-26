@@ -50,7 +50,7 @@ def schelling_draw(agent, value_io_desire=False, draw_agents=True):
         if prop_val < 0:
             color = "#FFFFFF"
         elif value_io_desire:
-            color = color_gradient(prop_val, 0, 10000)
+            color = color_gradient(prop_val, 0, 1000)
         else: 
             desirability = agent.model.desirability_layer.data[agent.pos]
             color = color_gradient(desirability, 0, 1)
@@ -60,14 +60,22 @@ def schelling_draw(agent, value_io_desire=False, draw_agents=True):
 
     # on layer 1, portray agents
     if draw_agents:
-        portrayal = {"Shape": "circle", "r": 0.6, "Filled": "true", "Layer": 1}
+        portrayal = {"Shape": "circle", "Filled": "true", "Layer": 1}
+
+        income = agent.budget
+        
+        scaled_income = min(max((income) / (4000), 0.25), 0.85)
+
+        # print(income, scaled_income)
 
         if agent.type == 0:
             portrayal["Color"] = ["#FFFFFF", "#FFFFFF"]
             portrayal["stroke_color"] = "#000000"
+            portrayal["r"] = scaled_income
         else:
             portrayal["Color"] = ["#000000", "#000000"]
             portrayal["stroke_color"] = "#FFFFFF"
+            portrayal["r"] = scaled_income
         return portrayal
 
 
@@ -123,6 +131,7 @@ model_params = {
     "calculate_gi_star": calculate_gi_star,
     "price_func_cap": price_func_cap,
     "policy_singapore" : False,
+    "policy_vienna" : False,
     ####
     "height": height,
     "width": width,

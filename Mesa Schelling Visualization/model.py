@@ -101,7 +101,7 @@ class Schelling(mesa.Model):
         policy_vienna=False,
         policy_singapore=False,
         policy_singapore_neighborhood_size = 2,
-        policy_singapore_threshold = 0.95,
+        policy_singapore_threshold = 0.8,
         ##########
         height=20,
         width=20,
