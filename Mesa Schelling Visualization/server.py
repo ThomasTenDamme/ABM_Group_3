@@ -142,7 +142,7 @@ model_params = {
     "compute_similar_neighbours": compute_similar_neighbours,
     "calculate_gi_star": calculate_gi_star,
     "price_func_cap": price_func_cap,
-    "policy_singapore" : False,
+    "policy_singapore" : True,
     "policy_vienna" : False,
     ####
     "height": height,
