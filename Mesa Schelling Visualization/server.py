@@ -1,7 +1,7 @@
 import mesa
 from model import Schelling
 from modules import property_value_from_gdf, update_interested_agents_concurrently, property_value_func_random, utility_func, price_func, income_func, property_value_from_gdf, property_value_quadrants, desirability_func, compute_similar_neighbours, property_value_equal, calculate_gi_star, price_func_cap
-
+import numpy as np
 
 def get_average_utility(model):
     """
@@ -54,7 +54,7 @@ def schelling_draw(agent, value_io_desire=False, draw_agents=True):
 
             if value_io_desire:
                 price = (0.5 + desirability) * prop_val
-                color = color_gradient(price, 0, 2800)
+                color = color_gradient(price, 0, 3500)
             else: 
                 color = color_gradient(desirability, 0, 1)
         portrayal["Color"] = [color, color]
@@ -74,7 +74,11 @@ def schelling_draw(agent, value_io_desire=False, draw_agents=True):
 
         price = (0.5 + agent.model.desirability_layer.data[agent.pos]) * agent.model.property_value_layer.data[agent.pos]
 
-        portrayal["value"] = f"Utility = {agent.utility:.2f}\nBudget = {income:.2f}\nPrice = {price:.2f}"
+        portrayal["Utility"] = f"{agent.utility:.3f}"
+        portrayal["Income"] = f"{income:.2f}"
+        portrayal["Price"] = f"{price:.2f}"
+        portrayal["Desirability"] = f"{agent.model.desirability_layer.data[agent.pos]:.2f}"
+        portrayal["Property Value"] = f"{agent.model.property_value_layer.data[agent.pos]:.2f}"
 
         if agent.type == 0:
             portrayal["Color"] = ["#FFFFFF", "#FFFFFF"]
@@ -138,7 +142,7 @@ model_params = {
     "compute_similar_neighbours": compute_similar_neighbours,
     "calculate_gi_star": calculate_gi_star,
     "price_func_cap": price_func_cap,
-    "policy_singapore" : False,
+    "policy_singapore" : True,
     "policy_vienna" : False,
     ####
     "height": height,
