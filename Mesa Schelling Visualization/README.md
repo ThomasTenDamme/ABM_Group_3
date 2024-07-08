@@ -45,6 +45,8 @@ To run the model with the grid displayed as an ASCII text, run `python run_ascii
 * ``schelling.py``: Contains the agent class, and the overall model class.
 * ``server.py``: Defines classes for visualizing the model in the browser via Mesa's modular server, and instantiates a visualization server.
 * ``analysis.ipynb``: Notebook demonstrating how to run experiments and parameter sweeps on the model.
+* ``Global_Sensitivity_Analysis.ipynb``: Notebook to conduct the Sobol sensitivity analysis for the no-policy model.
+* ``Experimental_analysis.ipynb``: Notebook with experiments, i.e., both policies tested. 
 
 ## Further Reading
 
