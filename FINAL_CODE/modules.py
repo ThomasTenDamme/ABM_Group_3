@@ -113,21 +113,6 @@ def income_func(scale=1.5):
     # Use the same gumbel distribution as the property value, but scale with scale value
     return np.abs(np.random.gumbel(loc=1200, scale=400) * scale)
 
-# def utility_func(model: mesa.Model, agent: mesa.Agent, property_loc: tuple) -> float:
-#     # agent_loc = agent.pos
-    
-#     theta = model.get_theta(property_loc, agent.type)
-
-#     desirability = model.desirability_layer.data[property_loc]
-
-#     alpha = model.alpha
-
-#     budget = agent.budget
-    
-#     price = model.price_func(model, property_loc)
-    
-#     return theta**alpha*desirability**(1-alpha)*((budget-price)/budget)
-
 def desirability_func(model: mesa.Model, prop_value_weight: float = 0.1) -> float:
     
     

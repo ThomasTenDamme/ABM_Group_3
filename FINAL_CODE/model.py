@@ -107,9 +107,9 @@ class Schelling(mesa.Model):
         width=20,
         radius=1,
         density=0.8,
-        minority_pc=0.2,
+        minority_pc=0.2,    # percentage of agents belonging minority group
         alpha=0.5,
-        income_scale=1.5, # the scale by which the income is higher than the property value
+        income_scale=1.5,   # the scale by which the income is higher than the property value
         property_value_weight=0.35,
         mu_theta = 0.4,
         sigma_theta = 0.6,
