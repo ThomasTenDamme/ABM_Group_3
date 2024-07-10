@@ -1,0 +1,10 @@
+geopandas==0.14.4
+matplotlib==3.7.2
+mesa==2.3.1
+numba==0.59.0
+numpy==1.25.2
+pyproj==3.6.1
+scipy==1.14.0
+Shapely==2.0.4
+scikit_posthocs
+SAlib

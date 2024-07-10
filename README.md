@@ -42,11 +42,14 @@ To run the model with the grid displayed as an ASCII text, run `python run_ascii
 
 * ``run.py``: Launches a model visualization server.
 * ``run_ascii.py``: Run the model in text mode.
-* ``schelling.py``: Contains the agent class, and the overall model class.
+* ``model.py``: Contains the agent class, and the overall model class.
+* ``modules.py``: Contains the modules, which are used by the model.
 * ``server.py``: Defines classes for visualizing the model in the browser via Mesa's modular server, and instantiates a visualization server.
-* ``analysis.ipynb``: Notebook demonstrating how to run experiments and parameter sweeps on the model.
+* ``Create_Geojson.ipynb``: Notebook demonstrating how to create the geojson file containing the grid with property values of Amsterdam.
 * ``Global_Sensitivity_Analysis.ipynb``: Notebook to conduct the Sobol sensitivity analysis for the no-policy model.
 * ``Experimental_analysis.ipynb``: Notebook with experiments, i.e., both policies tested. 
+* ``joined_gdf_50.geojson``: File containing the data on the property values of Amsterdam projected onto a grid.
+* ``requirements.txt``: Requirements file
 
 ## Further Reading
 
